@@ -56,13 +56,22 @@ async function addItem(tweet, tag1, tag2, source, url, type, length) {
         "URL": {
           "url": url
         },
-        /*"Tags": {
+        "Tags": {           //Tags but only select not multi-select          
+          "select": {
+            "name": tag1
+          }
+        }, 
+        /*"Tags": {             //Multi-select doesn't work: code: 'validation_error',  message: 'body failed validation. Fix one:\n' +
+          "object": "property_item",
+          "type": "multi_select",
           "multi-select": [
             {
-              "name": tag1 
+              "name": tag1, 
+              "color": "red"
             },
             {
-              "name": tag2
+              "name": tag2,
+              "color": "gray"
             }
           ],
         },*/
