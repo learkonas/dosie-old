@@ -7,7 +7,7 @@ const notion = new Client({ auth: process.env.NOTION_KEY })
 
 const databaseId = process.env.DB_ID
 
-async function addItem(tweet, tag, source, url, type, length) {
+async function addItem(tweet, tag1, tag2, source, url, type, length) {
   try {
     const response = await notion.pages.create({
       "parent": {
@@ -34,11 +34,6 @@ async function addItem(tweet, tag, source, url, type, length) {
             }
           }]
         },
-        /*"Tags": {
-          "multi-select": [{
-            "name": tag 
-          }]
-        },*/
         "Source": {
           "rich_text": [{
             "text": {
@@ -61,6 +56,16 @@ async function addItem(tweet, tag, source, url, type, length) {
         "URL": {
           "url": url
         },
+        /*"Tags": {
+          "multi-select": [
+            {
+              "name": tag1 
+            },
+            {
+              "name": tag2
+            }
+          ],
+        },*/
       },
       "children": [
         {
@@ -95,4 +100,4 @@ async function addItem(tweet, tag, source, url, type, length) {
   }
 }
 
-addItem("Tweet", "Tag", "Source", "https://google.com", "Thread", 5)
+addItem("Tweet", "Tag1", "Tag2", "Source", "https://google.com", "Thread", 5)
