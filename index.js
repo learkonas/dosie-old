@@ -7,42 +7,68 @@ const notion = new Client({ auth: process.env.NOTION_KEY })
 
 const databaseId = process.env.DB_ID
 
-/*
-async () => {
+async function addItem(tweet, tag, source, url, type, length) {
   try {
     const response = await notion.pages.create({
       "parent": {
         "type": "database_id",
         "database_id": databaseId
       },
-      "properties": {
-        "Name": {
-          "title": [{
+      "icon": {
+        "type": "external",
+        "external": { //I need to figure out how to add local files
+          "url": "https://static.wixstatic.com/media/902875_3f8a4aad38054fe085f75894377ffe62~mv2.png/v1/fill/w_471,h_471,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/EB_1mb.png"
+        }
+      },
+      "cover": {
+        "type": "external",
+        "external": {
+          "url": "https://static.wixstatic.com/media/902875_b14b82f8c6ea4d5cbf901639f07ac1db~mv2.jpg/v1/fill/w_1248,h_498,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/header%20strikingly.jpg"
+        }
+      },
+      properties: {
+        "Tweet": {
+          "title":[{
             "text": {
-              "content": "Tuscan kale"
+              "content": tweet
             }
           }]
         },
-        "Description": {
+        /*"Tags": {
+          "multi-select": [{
+            "name": tag 
+          }]
+        },*/
+        "Source": {
           "rich_text": [{
             "text": {
-              "content": "A dark green leafy vegetable"
-            }
+              "content": source,
+              "link": {
+                "url": url
+              }
+            },
+            "href": url
           }]
         },
-        "Food group": {
+        "Type": {
           "select": {
-            "name": "🥬 Vegetable"
+            "name": type
           }
-        }
+        },
+        "Length": {
+          "number": length
+        },
+        "URL": {
+          "url": url
+        },
       },
       "children": [
         {
           "object": "block",
-            "heading_2": {
+            "heading_3": {
               "rich_text": [{
                 "text": {
-                  "content": "Lacinato kale"
+                  "content": "Heading 3"
                 }
               }]
             }
@@ -52,65 +78,15 @@ async () => {
             "paragraph": {
               "rich_text": [
                 {
-                  "text": {
-                    "content": "Lacinato kale is a variety of kale with a long tradition in Italian cuisine, especially that of Tuscany. It is also known as Tuscan kale, Italian kale, dinosaur kale, kale, flat back kale, palm tree kale, or black Tuscan palm.",
-                    "link": {
-                      "url": "https://en.wikipedia.org/wiki/Lacinato_kale"
-                    }
+                  "text": { //this will need to be some kind of array to display the tweet or thread and will need an if statement
+                    "content": "Content.",
                   },
-                  "href": "https://en.wikipedia.org/wiki/Lacinato_kale"
                 }
               ],
               "color": "default"
             }
         }
       ]
-      "cover": {
-        "type": "external",
-        "external": {
-          "url": "https://upload.wikimedia.org/wikipedia/commons/6/62/Tuscankale.jpg"
-        }
-      },
-      "icon": {
-        "type": "emoji",
-        "emoji": "🥬"
-      },
-    })
-    console.log(response)
-    console.log("Success! Entry added.")
-  }
-  catch (error) {
-    console.log("Error.")
-    console.error(error.body)
-  }
-}*/
-
-
-async function addItem(text) {
-  try {
-    const response = await notion.pages.create({
-      parent: { database_id: databaseId },
-      /*"parent": {
-        "type": "database_id",
-        "database_id": databaseId
-      },*/
-      /*"properties": {
-        "Name": {
-          "title": [{
-            "text": {
-              "content": "Tuscan kale"
-            }
-          }]
-        },*/
-      properties: {
-        "title": { 
-          title:[{
-            "text": {
-              "content": text
-            }
-          }]
-        }
-      },
     })
     console.log(response)
     console.log("Success! Entry added.")
@@ -119,4 +95,4 @@ async function addItem(text) {
   }
 }
 
-addItem("Yurts in Big Sur, California")
+addItem("Tweet", "Tag", "Source", "https://google.com", "Thread", 5)
