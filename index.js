@@ -24,7 +24,7 @@ async function addItem(tweet, tag1, tag2, source, url, type, length) {
         "type": "external",
         "external": {
           "url": "https://static.wixstatic.com/media/902875_b14b82f8c6ea4d5cbf901639f07ac1db~mv2.jpg/v1/fill/w_1248,h_498,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/header%20strikingly.jpg"
-        }
+        },
       },
       properties: {
         "Tweet": {
@@ -56,25 +56,17 @@ async function addItem(tweet, tag1, tag2, source, url, type, length) {
         "URL": {
           "url": url
         },
-        /*"Tags": {           //Tags but only select not multi-select          
-          "select": {
-            "name": tag1
-          }
-        }, */
-        "Tags": {             //Multi-select doesn't work: code. Error: 'validation_error',  message: 'body failed validation. Fix one:\n' + .... (full error here: https://prnt.sc/ehwby0K-kUZV)
-          //"object": "property_item",
-          //"type": "multi_select",
-          "multi_select":{
-            "options": [
+        "Tags": { 
+          "multi_select": [
             {
-              "name": tag1, 
-              "color": "red"
+              "name": tag1,
+              color: "red"
             },
             {
               "name": tag2,
-              "color": "grey"
+              color: "blue"
             }
-          ]},
+          ]
         },
       },
       "children": [
@@ -110,4 +102,4 @@ async function addItem(tweet, tag1, tag2, source, url, type, length) {
   }
 }
 
-addItem("Tweet", "Tag1", "Tag2", "Source", "https://google.com", "Thread", 5)
+addItem("Tweet", "Tag_One", "Tag_Two", "Source", "https://google.com", "Thread", 5)
