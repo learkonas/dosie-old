@@ -7,7 +7,7 @@ const notion = new Client({ auth: process.env.NOTION_KEY })
 
 const databaseId = process.env.DB_ID
 
-async function addItem(tweet, tag1, tag2, source, url, type, length) {
+async function addItem(tweet, tag1, tag2, source, url, type, length, tweet_date) {
   try {
     const response = await notion.pages.create({
       "parent": {
@@ -16,7 +16,7 @@ async function addItem(tweet, tag1, tag2, source, url, type, length) {
       },
       "icon": {
         "type": "external",
-        "external": { //I need to figure out how to add local files
+        "external": { //I need to figure out how to add local files // Oct 22: maybe not, I can just pull from Twitter
           "url": "https://static.wixstatic.com/media/902875_3f8a4aad38054fe085f75894377ffe62~mv2.png/v1/fill/w_471,h_471,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/EB_1mb.png"
         }
       },
@@ -53,21 +53,24 @@ async function addItem(tweet, tag1, tag2, source, url, type, length) {
         "Length": {
           "number": length
         },
-        "URL": {
+        /*"URL": {
           "url": url
-        },
+        },*/
         "Tags": { 
           "multi_select": [
             {
               "name": tag1,
-              color: "red"
             },
             {
               "name": tag2,
-              color: "blue"
             }
           ]
         },
+        /*
+        "Created": {
+          //NEED TO ADD THE DATE CREATED IN HERE
+        }
+        */
       },
       "children": [
         {
@@ -86,7 +89,7 @@ async function addItem(tweet, tag1, tag2, source, url, type, length) {
               "rich_text": [
                 {
                   "text": { //this will need to be some kind of array to display the tweet or thread and will need an if statement
-                    "content": "Content.",
+                    "content": tweet,
                   },
                 }
               ],
@@ -102,4 +105,13 @@ async function addItem(tweet, tag1, tag2, source, url, type, length) {
   }
 }
 
-addItem("Tweet", "Tag_One", "Tag_Two", "Source", "https://google.com", "Thread", 5)
+addItem("Tweet content goes here", "Tag1", "Tag2", "Author", "https://google.com", "Tweet", 1, "2022-10-03T11:24:34.000Z") 
+/*
+Tweet = Copy and paste the bookmarked tweet / top tweet in thread
+TagX = hashtags in the call tweet
+Author = name of author in the bookmarked tweet
+Link = Link to the bookmarked tweet
+Thread/Tweet = whether it is a tweet or thread being saved
+Length = length of thread (incl. 1)
+ALSO, need vars for the bookmarked author's profile pic, something for the cover photo, and the objects for the bookmarked tweet
+*/
