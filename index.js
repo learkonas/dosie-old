@@ -61,20 +61,21 @@ async function addItem(tweet, tag1, tag2, source, url, type, length) {
             "name": tag1
           }
         }, 
-        /*"Tags": {             //Multi-select doesn't work: code. Error: 'validation_error',  message: 'body failed validation. Fix one:\n' + .... (full error here: https://prnt.sc/ehwby0K-kUZV)
-          "object": "property_item",
-          "type": "multi_select",
-          "multi-select": [
+        "Tags": {             //Multi-select doesn't work: code. Error: 'validation_error',  message: 'body failed validation. Fix one:\n' + .... (full error here: https://prnt.sc/ehwby0K-kUZV)
+          //"object": "property_item",
+          //"type": "multi_select",
+          "multi_select":{
+            "options": [
             {
               "name": tag1, 
               "color": "red"
             },
             {
               "name": tag2,
-              "color": "gray"
+              "color": "grey"
             }
-          ],
-        },*/
+          ]},
+        },
       },
       "children": [
         {
