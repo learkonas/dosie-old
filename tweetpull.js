@@ -11,7 +11,7 @@ var tweet_text = "tweet_text";
 // FIND TWEET BY ID
 async function findTweetbyID(tweetID) {
     const client = new Client(process.env.TW_BEARER);
-      const response = await client.tweets.findTweetsById({
+      const tweet_response = await client.tweets.findTweetsById({
         "ids": [
             tweetID
         ],
@@ -62,9 +62,9 @@ async function findTweetbyID(tweetID) {
         ]
       });
     
-    console.log(response);
-    console.log("response", JSON.stringify(response, null, 2));
-    tweet_text = response.data.text;
+    //console.log(tweet_response);
+    console.log("tweet_response", JSON.stringify(tweet_response, null, 2));
+    tweet_text = tweet_response.data.text;
     //console.log(tweet_text); // RETURNS undefined, not expected. '@culture3xyz Hello friends 👋 https://t.co/eKb5XLqQaM' was expected
     }
     
@@ -73,18 +73,14 @@ findTweetbyID("1576895984373993472");
 // FIND USER BY ID
 async function findUserbyID(userID) {
     const client = new Client(process.env.TW_BEARER);
-       const response = await client.users.findUserById(userID, );
-    //console.log(response);
-    username = response.data.username;
-    author_name = response.data.name;
-    //console.log(username); // RETURNS 'bassil_taleb', as expected
+       const user_response = await client.users.findUserById(userID, );
+    username = user_response.data.username;
+    author_name = user_response.data.name;
+    //console.log(username); // returns 'bassil_taleb', as expected
 }
 
 
 //findUserbyID("285327473");
-
-
-
 import { addItem } from "./index.js";
 findUserbyID("285327473").then(() => {
     username = username;
