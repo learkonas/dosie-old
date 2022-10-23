@@ -28,7 +28,7 @@ let cover_bank_number = Math.floor(Math.random() * 13);
 cover_image_url = cover_image_url_bank[cover_bank_number];
 
 
-export async function addItem(tweet, tag1, tag2, source, url, type, length, tweet_date, author_pfp) {
+export async function addItem(tweet, tag1, tag2, source, url, type, length, tweet_date, author_pfp, spare) { // note to self, you can have items at the end that are not always used. Useful for storing thread info
   try {
     const response = await notion.pages.create({
       "parent": {
@@ -37,7 +37,7 @@ export async function addItem(tweet, tag1, tag2, source, url, type, length, twee
       },
       "icon": {
         "type": "external",
-        "external": { //I need to figure out how to add local files // Oct 22: maybe not, I can just pull from Twitter
+        "external": {
           "url": author_pfp
         }
       },
@@ -106,7 +106,7 @@ export async function addItem(tweet, tag1, tag2, source, url, type, length, twee
             "paragraph": {
               "rich_text": [
                 {
-                  "text": { //this will need to be some kind of array to display the tweet or thread and will need an if statement
+                  "text": { //this may  need to be some kind of array to display the tweet or thread and may need an if statement
                     "content": tweet,
                   },
                 }
@@ -116,10 +116,10 @@ export async function addItem(tweet, tag1, tag2, source, url, type, length, twee
         }
       ]
     })
-    console.log(response)
+    //console.log(response)
     console.log("Success! Entry added.")
-  } catch (error) {
-    console.error(error.body)
+  } catch (e) {
+    console.error(e.body)
   }
 }
 

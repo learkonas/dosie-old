@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-d
 dotenv.config();
 import { addItem } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
 
-const TWEET_ID = "1576895984373993472";  // this is the crucial tweet ID that determines everything else
+const TWEET_ID = "1544723110854856704";  // this is the crucial tweet ID that determines everything else
 
 var tweet_author_username = "tweet_author_username";           // defining global variables
 var twitter_url = "https://twitter.com/"
@@ -11,16 +11,19 @@ var tweet_author_url = "https://twitter.com/"
 var tweet_address_url = "https://twitter.com/i/status/"
 var author_name = "author_name";
 var tweet_text = "tweet_text";
+var tweet_title = "tweet_title";
 var tweet_created = "tweet_created";
 var tweet_author_id = "tweet_author_id";
 var tweet_replying_to = "tweet_replying_to";
 var tweet_author_pfp_url = "tweet_author_pfp_url";
-
+var tweet_thread_status = "Tweet";
+var replied_to_tweet_ID = "replied_to_tweet_ID";
+var tweet_response_storage = "tweet_response_storage";
 
 // FIND TWEET BY ID
 async function findTweetbyID(tweetID) {                                  // defining find Tweet by ID function
     const client = new Client(process.env.TW_BEARER);                    // establishing authentication for Twitter API
-      const tweet_response = await client.tweets.findTweetsById({
+      const tweet_response_original = await client.tweets.findTweetsById({
         "ids": [
             tweetID
         ],
@@ -70,14 +73,15 @@ async function findTweetbyID(tweetID) {                                  // defi
             "withheld"
         ]
       });    //querying the Twitter API for the tweet by the tweet ID
-    //console.log(tweet_response);                                               //print response
-    //console.log(JSON.stringify(tweet_response, null, 2))                       //print response in string form
-    tweet_text = tweet_response.data[0].text;                                    //pulling the text of the saved tweet
-    tweet_created = tweet_response.data[0].created_at;                           //pulling when the saved tweet was written, something like 2022-10-03T11:24:34.000Z
+    //console.log(tweet_response_original);                                               //print response
+    //console.log(JSON.stringify(tweet_response_original, null, 2))                       //print response in string form
+    tweet_response_storage = tweet_response_original;
+    tweet_text = tweet_response_original.data[0].text;                                    //pulling the text of the saved tweet
+    tweet_created = tweet_response_original.data[0].created_at;                           //pulling when the saved tweet was written, something like 2022-10-03T11:24:34.000Z
     tweet_created = tweet_created.substring(0, tweet_created.length - 14);       //adjust the created date to just the date w/o the time by removing the last 14 chars
-    tweet_author_id = tweet_response.data[0].author_id;                          //pulling the author's User ID
-    tweet_replying_to = tweet_response.data[0].in_reply_to_user_id;              //pulling the User ID of the author which the saved tweet is replying to
-    tweet_author_pfp_url = tweet_response.includes.users[0].profile_image_url;   //pulling pfp url of the author
+    tweet_author_id = tweet_response_original.data[0].author_id;                          //pulling the author's User ID
+    tweet_replying_to = tweet_response_original.data[0].in_reply_to_user_id;              //pulling the User ID of the author which the saved tweet is replying to
+    tweet_author_pfp_url = tweet_response_original.includes.users[0].profile_image_url;   //pulling pfp url of the author
 
     // scaling up the profile image from _normal to _400x400
     if (tweet_author_pfp_url.endsWith("normal.jpg")) {                                                  // is this image 'normal'
@@ -96,6 +100,7 @@ async function findUserbyID(userID) {
 }
 
 
+
 findTweetbyID(TWEET_ID).then(() => {
     findUserbyID(tweet_author_id).then(() => {
         tweet_address_url = tweet_address_url+TWEET_ID; // combining the generic address for tweets (twitter.com/i/status/) with the specific tweet_ID, to make twitter.com/i/status/tweet_ID
@@ -106,8 +111,61 @@ findTweetbyID(TWEET_ID).then(() => {
             tweet_text = tweet_text.substring(replied_to_username_length); //removes the first 19 characters from the reply, leaving us with "hello Replied To Account..."       We then search to see if there is another replied-to account as well. If not, we move on
         }    
         
+        // figure out if we are dealing with a Tweet or a Thread by seeing if the saved tweet author User ID matches the User ID of the tweet being replied to. If true, it is a thread. Else (e.g. if false or null (i.e. it doesn't reply to anything)) it is a Tweet. Users have to save the bottom of a thread if they want the thread, and automatically getting any tweets above it. Even if they don't want the thread, this adds context
         
+        if (tweet_author_id==tweet_replying_to) {
+            var tweet_thread_status = "Thread";     // if the authorID matches that of the tweet which the saved tweet replies to, it is a thread
+            replied_to_tweet_ID = tweet_response_storage.data[0].referenced_tweets[0].id;   //pull the tweetID above the saved tweet, in the thread
+            
+            //going to bed now, but this is how the logic could work for figuring out the length
+            /*
 
-        addItem(tweet_text, "Tag1", "Tag2", author_name, tweet_address_url, "Tweet", 1, tweet_created, tweet_author_pfp_url); //add the item to Notion DB
+                ID of the saved tweet is given, as is the full API response. This is tweet0
+                get the ID of the tweet above it from the API response. This is tweet1. We already know it's the same author because we're in the true part of the if statememnt
+                query that new tweetID (tweet1) with our function
+                store and clean the text of tweet1 and get the author ID of tweet above it (tweet2, or i+1) (which we get from above query)
+
+                                let i = 1
+                while:  authorID of tweet1(i) == authorID tweet2(i+1)
+                query tweet2(i+1)
+                store and clean text of tweet2(i+1)
+                i = i + 1
+                get the authorID of tweet3(i+1)
+
+                // upon reflection: this should be how I get all the tweets. Get an ID. Query it. While author ID matches the above tweet, query etc
+                        //      ie: rather than tucking it at the back separately
+
+                // use a do/while loop ... more info here: https://www.w3schools.com/js/js_loop_while.asp#:~:text=crash%20your%20browser.-,The%20Do%20While%20Loop,the%20condition%20is%20true.,-Syntax
+                
+                let i = 1
+            try {    
+                do {  
+                    query tweet(i)
+                    if i = 1 {
+                        save some standalone things, like the pfp url, the title, the source, the created date, thread/tweet status, etc
+                    }
+                    save the text and any media/polls etc - stuff we need for every tweet in the thread
+                    i++
+                }
+                while (authorID of tweet(i-1) == authorID of tweet(i))
+                        // need to figure out what to do when there is no tweet above it to be compared to. If this turns out to just have a value of 'undefined' or null, we're okay. But if it causes an error, then we could use try/catch(/finally)
+            }
+            catch {    
+                length of chain = i-1
+                if i = 2 {
+                    status = tweet
+                }
+                else {
+                    status = thread
+                }
+            }
+
+        */
+
+        } else {
+            tweet_thread_status = "Tweet";          
+        }
+
+        addItem(tweet_text, "Tag1", "Tag2", author_name, tweet_address_url, tweet_thread_status, 1, tweet_created, tweet_author_pfp_url, tweet_text); //add the item to Notion DB
     })
 })
