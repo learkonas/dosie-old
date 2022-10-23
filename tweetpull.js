@@ -1,14 +1,17 @@
 import { Client } from "twitter-api-sdk";
 import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
-dotenv.config() // The code below sets the bearer token from your environment variables
+dotenv.config();
+var username = "username";
+var twitter_url = "https://twitter.com/"
+var user_url = "https://twitter.com/"
+var author_name = "author_name";
+var tweet_text = "tweet_text";
 
 
 // FIND TWEET BY ID
-// this is pulling Tweet content, 
 async function findTweetbyID(tweetID) {
     const client = new Client(process.env.TW_BEARER);
-  
-    const response = await client.tweets.findTweetsById({
+      const response = await client.tweets.findTweetsById({
         "ids": [
             tweetID
         ],
@@ -58,20 +61,37 @@ async function findTweetbyID(tweetID) {
             "withheld"
         ]
       });
-      
-      console.log("response", JSON.stringify(response, null, 2));
+    
+    console.log(response);
+    console.log("response", JSON.stringify(response, null, 2));
+    tweet_text = response.data.text;
+    //console.log(tweet_text); // RETURNS undefined, not expected. '@culture3xyz Hello friends 👋 https://t.co/eKb5XLqQaM' was expected
     }
     
 findTweetbyID("1576895984373993472");
 
-
 // FIND USER BY ID
 async function findUserbyID(userID) {
     const client = new Client(process.env.TW_BEARER);
-   
-    const response = await client.users.findUserById(userID, );
-        
-    console.log("response", JSON.stringify(response, null, 2));
+       const response = await client.users.findUserById(userID, );
+    //console.log(response);
+    username = response.data.username;
+    author_name = response.data.name;
+    //console.log(username); // RETURNS 'bassil_taleb', as expected
 }
-        
-findUserbyID("285327473");
+
+
+//findUserbyID("285327473");
+
+
+
+import { addItem } from "./index.js";
+findUserbyID("285327473").then(() => {
+    username = username;
+    user_url = twitter_url+username
+    author_name = author_name;
+    
+    //addItem("IMPORTED", "Tag1", "Tag2", author_name, user_url, "Tweet", 1, "2022-10-03");
+})
+
+
