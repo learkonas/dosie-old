@@ -6,6 +6,7 @@ var twitter_url = "https://twitter.com/"
 var user_url = "https://twitter.com/"
 var author_name = "author_name";
 var tweet_text = "tweet_text";
+var notion_page_title = "A tweet by ";
 
 
 // FIND TWEET BY ID
@@ -63,7 +64,7 @@ async function findTweetbyID(tweetID) {
       });
     
     //console.log(tweet_response);
-    console.log("tweet_response", JSON.stringify(tweet_response, null, 2));
+    //console.log("tweet_response", JSON.stringify(tweet_response, null, 2));
     tweet_text = tweet_response.data.text;
     //console.log(tweet_text); // RETURNS undefined, not expected. '@culture3xyz Hello friends 👋 https://t.co/eKb5XLqQaM' was expected
     }
@@ -86,8 +87,10 @@ findUserbyID("285327473").then(() => {
     username = username;
     user_url = twitter_url+username
     author_name = author_name;
+    notion_page_title = notion_page_title+author_name;
+
     
-    //addItem("IMPORTED", "Tag1", "Tag2", author_name, user_url, "Tweet", 1, "2022-10-03");
+    addItem(notion_page_title, "Tag1", "Tag2", author_name, user_url, "Tweet", 1, "2022-10-03");
 })
 
 
