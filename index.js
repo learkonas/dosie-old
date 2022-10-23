@@ -53,9 +53,11 @@ async function addItem(tweet, tag1, tag2, source, url, type, length, tweet_date)
         "Length": {
           "number": length
         },
-        /*"URL": {
-          "url": url
-        },*/
+        "Tweeted": {
+          "date": {
+            "start": tweet_date
+          }
+        },
         "Tags": { 
           "multi_select": [
             {
@@ -66,11 +68,6 @@ async function addItem(tweet, tag1, tag2, source, url, type, length, tweet_date)
             }
           ]
         },
-        /*
-        "Created": {
-          //NEED TO ADD THE DATE CREATED IN HERE
-        }
-        */
       },
       "children": [
         {
@@ -105,7 +102,7 @@ async function addItem(tweet, tag1, tag2, source, url, type, length, tweet_date)
   }
 }
 
-addItem("Tweet content goes here", "Tag1", "Tag2", "Author", "https://google.com", "Tweet", 1, "2022-10-03T11:24:34.000Z") 
+addItem("Tweet content goes here", "Tag1", "Tag2", "Author", "https://google.com", "Tweet", 1, "2022-10-03") 
 /*
 Tweet = Copy and paste the bookmarked tweet / top tweet in thread
 TagX = hashtags in the call tweet
