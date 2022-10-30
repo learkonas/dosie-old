@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-d
 dotenv.config();
 import { addItem } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
 
-const TWEET_ID = "1586747616049729536";  // this is the crucial tweet ID that determines everything else
+const TWEET_ID = "1586294774587305984";  // this is the crucial tweet ID that determines everything else
 var finalArray = []; // this will be the final array of all the tweets etc that we use to populate a page in the Notion DB
 
 var tweet_author_username = "tweet_author_username";           // defining global variables
@@ -76,7 +76,7 @@ async function findTweetbyID(tweetID) {                                  // defi
     });    //querying the Twitter API for the tweet by the tweet ID
     //console.log(tweet_response_original);                                               //print response
     //console.log(JSON.stringify(tweet_response_original, null, 2))                       //print response in string form
-    //tweet_response_storage = tweet_response_original;
+    tweet_response_storage = tweet_response_original;
     tweet_text = tweet_response_original.data[0].text;                                    //pulling the text of the saved tweet
     tweet_created = tweet_response_original.data[0].created_at;                           //pulling when the saved tweet was written, something like 2022-10-03T11:24:34.000Z
     tweet_created = tweet_created.substring(0, tweet_created.length - 14);       //adjust the created date to just the date w/o the time by removing the last 14 chars
@@ -113,7 +113,6 @@ async function findUserbyID(userID) {
 }
 
 
-
 findTweetbyID(TWEET_ID).then(() => {
     findUserbyID(tweet_author_id).then(() => {
 
@@ -123,7 +122,13 @@ findTweetbyID(TWEET_ID).then(() => {
         if (tweet_author_id==tweet_replying_to_author) {
             var tweet_thread_status = "Thread";     // if the authorID matches that of the tweet which the saved tweet replies to, it is a thread
             replied_to_tweet_ID = tweet_response_storage.data[0].referenced_tweets[0].id;   //pull the tweetID above the saved tweet, in the thread
-            
+        } else {
+            tweet_thread_status = "Tweet";          
+        }    
+        addItem(tweet_text, "Tag1", "Tag2", author_name, tweet_address_url, tweet_thread_status, 2, tweet_created, tweet_author_pfp_url, tweet_text); //add the item to Notion DB
+    })
+})
+
             //going to bed now, but this is how the logic could work for figuring out the length
             /*
 
@@ -168,11 +173,3 @@ findTweetbyID(TWEET_ID).then(() => {
             }
 
         */
-
-        } else {
-            tweet_thread_status = "Tweet";          
-        }
-
-        addItem(tweet_text, "Tag1", "Tag2", author_name, tweet_address_url, tweet_thread_status, 1, tweet_created, tweet_author_pfp_url, tweet_text); //add the item to Notion DB
-    })
-})
