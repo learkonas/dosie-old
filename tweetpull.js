@@ -5,27 +5,31 @@ import { addItem } from "./index.js"; // bringing over the code from index.js, w
 
 const TWEET_ID = "1586294774587305984";  // this is the crucial tweet ID that determines everything else
 var finalArray = []; // this will be the final array of all the tweets etc that we use to populate a page in the Notion DB
+var coreStats = [];  // this will be the final array of the core data we add into that Notion DB page
 
 var tweet_author_username = "tweet_author_username";           // defining global variables
 var twitter_url = "https://twitter.com/"
 var tweet_author_url = "https://twitter.com/"
-var tweet_address_url = "https://twitter.com/i/status/"
+var tweet_address_url_base = "https://twitter.com/i/status/"
 var author_name = "author_name";
 var tweet_text = "tweet_text";
 var tweet_title = "tweet_title";
 var tweet_created = "tweet_created";
 var tweet_author_id = "tweet_author_id";
-var tweet_replying_to_author = "tweet_replying_to_author";
-var tweet_replying_to_tweet = "tweet_replying_to_tweet";
+var tweet_replying_to_author = "tweet_replying_to_author"; //User ID
+var replied_to_tweet_ID = "replied_to_tweet_ID";           //Tweet ID
 var tweet_author_pfp_url = "tweet_author_pfp_url";
 var tweet_thread_status = "Tweet";
-var replied_to_tweet_ID = "replied_to_tweet_ID";
-var tweet_response_storage = "tweet_response_storage";
+var tweet_response_original = "tweet_response_original";
+
 const client = new Client(process.env.TW_BEARER);  // establishing authentication for Twitter API
+
+var tweet_counter = 0;
 
 // FIND TWEET BY ID
 async function findTweetbyID(tweetID) {                                  // defining find Tweet by ID function
-    const tweet_response_original = await client.tweets.findTweetsById({
+    tweet_counter++;
+    const tweet_response_current = await client.tweets.findTweetsById({
         "ids": [
             tweetID
         ],
@@ -74,23 +78,18 @@ async function findTweetbyID(tweetID) {                                  // defi
             "withheld"
         ]
     });    //querying the Twitter API for the tweet by the tweet ID
-    //console.log(tweet_response_original);                                               //print response
-    //console.log(JSON.stringify(tweet_response_original, null, 2))                       //print response in string form
-    tweet_response_storage = tweet_response_original;
-    tweet_text = tweet_response_original.data[0].text;                                    //pulling the text of the saved tweet
-    tweet_created = tweet_response_original.data[0].created_at;                           //pulling when the saved tweet was written, something like 2022-10-03T11:24:34.000Z
-    tweet_created = tweet_created.substring(0, tweet_created.length - 14);       //adjust the created date to just the date w/o the time by removing the last 14 chars
-    tweet_author_id = tweet_response_original.data[0].author_id;                          //pulling the author's User ID
-    tweet_replying_to_author = tweet_response_original.data[0].in_reply_to_user_id;       //pulling the User ID  to which the saved tweet is replying to
-    tweet_replying_to_tweet = tweet_response_original.data[0].referenced_tweets[0].id;    //pulling the Tweet ID to which the saved tweet is replying to
-    tweet_author_pfp_url = tweet_response_original.includes.users[0].profile_image_url;   //pulling pfp url of the author
-    tweet_address_url = tweet_address_url+TWEET_ID; // combining the generic address for tweets (twitter.com/i/status/) with the specific tweet_ID, to make twitter.com/i/status/tweet_ID
-
-    // scaling up the profile image from _normal to _400x400
-    if (tweet_author_pfp_url.endsWith("normal.jpg")) {                                                  // is this image 'normal'
-        tweet_author_pfp_url = tweet_author_pfp_url.substring(0, tweet_author_pfp_url.length - 10);     // if so, let's change that. Get rid of the normal.jpg ending by removing the last 10 chars
-        tweet_author_pfp_url = tweet_author_pfp_url.concat("400x400.jpg");                              // and make it bigger by adding 400x400.jpg to the end instead
+    //console.log(tweet_response_current);                                               //print response
+    //console.log(JSON.stringify(tweet_response_current, null, 2))                       //print response in string form
+    if (tweet_counter == 1) {
+        tweet_response_original = tweet_response_current;
     }
+    tweet_text = tweet_response_current.data[0].text;                                    //pulling the text of the saved tweet
+    tweet_created = tweet_response_current.data[0].created_at;                           //pulling when the saved tweet was written, something like 2022-10-03T11:24:34.000Z
+    tweet_created = tweet_created.substring(0, tweet_created.length - 14);       //adjust the created date to just the date w/o the time by removing the last 14 chars
+    tweet_author_id = tweet_response_current.data[0].author_id;                          //pulling the author's User ID
+    tweet_replying_to_author = tweet_response_current.data[0].in_reply_to_user_id;       //pulling the User ID  to which the saved tweet is replying to
+    replied_to_tweet_ID = tweet_response_current.data[0].referenced_tweets[0].id;    //pulling the Tweet ID to which the saved tweet is replying to
+    let tweet_address_url = tweet_address_url_base+TWEET_ID;                            // combining the generic address for tweets (twitter.com/i/status/) with the specific tweet_ID, to make twitter.com/i/status/tweet_ID
 
     // removing reply-to tags from the start of a tweet. E.g if someone replies to a tweet, it comes up something like "@replied_to_account hello Replied To Account, I am replying to your tweet"
     while (tweet_text.startsWith("@")) {    // trigger this while the tweet_text begins with @ 
@@ -98,34 +97,59 @@ async function findTweetbyID(tweetID) {                                  // defi
         tweet_text = tweet_text.substring(replied_to_username_length); //removes the first 19 characters from the reply, leaving us with "hello Replied To Account..."       We then search to see if there is another replied-to account as well. If not, we move on
     }
 
-    let baseArray = [[tweet_text], [tweet_created], [tweet_author_id], [tweet_replying_to_author], [tweet_address_url]];
+    let baseArray = [[tweet_text],[tweet_created],
+                    [tweet_author_id], [tweet_replying_to_author],
+                    [tweet_address_url],
+                    [TWEET_ID], [replied_to_tweet_ID],];
     finalArray.push(baseArray);
-    let last_tweet_location_in_array = finalArray.length - 1;
+    let last_tweet_item_in_array = finalArray.length - 1;
 }
 
 // FIND USER BY ID
 async function findUserbyID(userID) {
+    // scaling up the profile image from _normal to _400x400
+    tweet_author_pfp_url = tweet_response_original.includes.users[0].profile_image_url;   //pulling pfp url of the author
+    if (tweet_author_pfp_url.endsWith("normal.jpg")) {                                                  // is this image 'normal'
+        tweet_author_pfp_url = tweet_author_pfp_url.substring(0, tweet_author_pfp_url.length - 10);     // if so, let's change that. Get rid of the normal.jpg ending by removing the last 10 chars
+        tweet_author_pfp_url = tweet_author_pfp_url.concat("400x400.jpg");                            // and make it bigger by adding 400x400.jpg to the end instead
+    }
 
     const user_response = await client.users.findUserById(userID,);  // calling the Twitter API for User with the User ID
-    tweet_author_username = user_response.data.username;   //  getting the Handle of the author of the saved tweet
     author_name = user_response.data.name;                 //  getting the Name   of the author of the saved tweet
+    tweet_author_username = user_response.data.username;   //  getting the Handle of the author of the saved tweet
     tweet_author_url = twitter_url+tweet_author_username   //  combining the generic twitter url (twitter.com/) with the author's specific handle tweet_author_url to produce twitter.com/tweet_author_url
+    coreStats = [[tweet_author_pfp_url], [tweet_author_id],
+                [tweet_author_url], [author_name],];
 }
-
 
 findTweetbyID(TWEET_ID).then(() => {
     findUserbyID(tweet_author_id).then(() => {
 
-
        // figure out if we are dealing with a Tweet or a Thread by seeing if the saved tweet author User ID matches the User ID of the tweet being replied to. If true, it is a thread. Else (e.g. if false or null (i.e. it doesn't reply to anything)) it is a Tweet. Users have to save the bottom of a thread if they want the thread, and automatically getting any tweets above it. Even if they don't want the thread, this adds context
+        if (coreStats[1]==tweet_replying_to_author) {   // if this is a while loop, it is infinite
+            console.log(coreStats[1])               //author ID of original tweet, constant
+            console.log(tweet_replying_to_author)   //
+            tweet_thread_status = "Thread";     // if the authorID matches that of the tweet which the saved tweet replies to, it is a thread
+            replied_to_tweet_ID = tweet_response_original.data[0].referenced_tweets[0].id;   //pull the tweetID above the saved tweet, in the thread
+            
+            findTweetbyID(replied_to_tweet_ID).then(() => {    
+                console.log(coreStats[1])                 
+                console.log(tweet_replying_to_author)
+                // STUCK HERE: CANNOT CARRY THESE VALUES OUTSIDE THE ASYNC FUNCTION
+            })     
+            console.log(tweet_replying_to_author) // STUCK HERE: CANNOT CARRY THIS VALUE OUTSIDE THE ASYNC FUNCTION - https://stackoverflow.com/questions/50425320/how-can-i-create-async-await-globally
+            console.log(finalArray)
+        }
 
-        if (tweet_author_id==tweet_replying_to_author) {
-            var tweet_thread_status = "Thread";     // if the authorID matches that of the tweet which the saved tweet replies to, it is a thread
-            replied_to_tweet_ID = tweet_response_storage.data[0].referenced_tweets[0].id;   //pull the tweetID above the saved tweet, in the thread
-        } else {
-            tweet_thread_status = "Tweet";          
-        }    
-        addItem(tweet_text, "Tag1", "Tag2", author_name, tweet_address_url, tweet_thread_status, 2, tweet_created, tweet_author_pfp_url, tweet_text); //add the item to Notion DB
+
+        if (tweet_counter == 1) {
+            tweet_thread_status = "Tweet";
+            //console.log("There IS ", tweet_counter, "tweet.")    
+        }
+        else {
+            //console.log("There ARE ", tweet_counter, "tweets.")  
+        } 
+        //addItem(tweet_text, "Tag1", "Tag2", author_name, tweet_address_url, tweet_thread_status, 2, tweet_created, tweet_author_pfp_url, tweet_text); //add the item to Notion DB
     })
 })
 
