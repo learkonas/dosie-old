@@ -4,6 +4,7 @@ dotenv.config();
 import { addItem } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
 
 const TWEET_ID = "1586747616049729536";  // this is the crucial tweet ID that determines everything else
+var finalArray = []; // this will be the final array of all the tweets etc that we use to populate a page in the Notion DB
 
 var tweet_author_username = "tweet_author_username";           // defining global variables
 var twitter_url = "https://twitter.com/"
@@ -14,23 +15,23 @@ var tweet_text = "tweet_text";
 var tweet_title = "tweet_title";
 var tweet_created = "tweet_created";
 var tweet_author_id = "tweet_author_id";
-var tweet_replying_to = "tweet_replying_to";
+var tweet_replying_to_author = "tweet_replying_to_author";
+var tweet_replying_to_tweet = "tweet_replying_to_tweet";
 var tweet_author_pfp_url = "tweet_author_pfp_url";
 var tweet_thread_status = "Tweet";
 var replied_to_tweet_ID = "replied_to_tweet_ID";
 var tweet_response_storage = "tweet_response_storage";
+const client = new Client(process.env.TW_BEARER);  // establishing authentication for Twitter API
 
 // FIND TWEET BY ID
 async function findTweetbyID(tweetID) {                                  // defining find Tweet by ID function
-    const client = new Client(process.env.TW_BEARER);                    // establishing authentication for Twitter API
-      const tweet_response_original = await client.tweets.findTweetsById({
+    const tweet_response_original = await client.tweets.findTweetsById({
         "ids": [
             tweetID
         ],
 
         "tweet.fields": [
             "author_id",
-            "conversation_id",
             "created_at",
             "id",
             "in_reply_to_user_id",
@@ -38,7 +39,7 @@ async function findTweetbyID(tweetID) {                                  // defi
             "text",
             "withheld"
         ],
-        
+
         "expansions": [
             "attachments.media_keys",
             "attachments.poll_ids",
@@ -72,15 +73,16 @@ async function findTweetbyID(tweetID) {                                  // defi
             "username",
             "withheld"
         ]
-      });    //querying the Twitter API for the tweet by the tweet ID
+    });    //querying the Twitter API for the tweet by the tweet ID
     //console.log(tweet_response_original);                                               //print response
     //console.log(JSON.stringify(tweet_response_original, null, 2))                       //print response in string form
-    tweet_response_storage = tweet_response_original;
+    //tweet_response_storage = tweet_response_original;
     tweet_text = tweet_response_original.data[0].text;                                    //pulling the text of the saved tweet
     tweet_created = tweet_response_original.data[0].created_at;                           //pulling when the saved tweet was written, something like 2022-10-03T11:24:34.000Z
     tweet_created = tweet_created.substring(0, tweet_created.length - 14);       //adjust the created date to just the date w/o the time by removing the last 14 chars
     tweet_author_id = tweet_response_original.data[0].author_id;                          //pulling the author's User ID
-    tweet_replying_to = tweet_response_original.data[0].in_reply_to_user_id;              //pulling the User ID of the author which the saved tweet is replying to
+    tweet_replying_to_author = tweet_response_original.data[0].in_reply_to_user_id;       //pulling the User ID  to which the saved tweet is replying to
+    tweet_replying_to_tweet = tweet_response_original.data[0].referenced_tweets[0].id;    //pulling the Tweet ID to which the saved tweet is replying to
     tweet_author_pfp_url = tweet_response_original.includes.users[0].profile_image_url;   //pulling pfp url of the author
     tweet_address_url = tweet_address_url+TWEET_ID; // combining the generic address for tweets (twitter.com/i/status/) with the specific tweet_ID, to make twitter.com/i/status/tweet_ID
 
@@ -94,14 +96,17 @@ async function findTweetbyID(tweetID) {                                  // defi
     while (tweet_text.startsWith("@")) {    // trigger this while the tweet_text begins with @ 
         let replied_to_username_length = tweet_text.indexOf(" ") + 1;  //find after how many characters the username ends, leading to a " ". If @replied_to_account, then we get 18 + 1 = 19
         tweet_text = tweet_text.substring(replied_to_username_length); //removes the first 19 characters from the reply, leaving us with "hello Replied To Account..."       We then search to see if there is another replied-to account as well. If not, we move on
-    }    
+    }
 
+    let baseArray = [[tweet_text], [tweet_created], [tweet_author_id], [tweet_replying_to_author], [tweet_address_url]];
+    finalArray.push(baseArray);
+    let last_tweet_location_in_array = finalArray.length - 1;
 }
-    
+
 // FIND USER BY ID
 async function findUserbyID(userID) {
-    const client = new Client(process.env.TW_BEARER);                    // establishing authentication for the Tw API
-       const user_response = await client.users.findUserById(userID, );  // calling the Twitter API for User with the User ID
+
+    const user_response = await client.users.findUserById(userID,);  // calling the Twitter API for User with the User ID
     tweet_author_username = user_response.data.username;   //  getting the Handle of the author of the saved tweet
     author_name = user_response.data.name;                 //  getting the Name   of the author of the saved tweet
     tweet_author_url = twitter_url+tweet_author_username   //  combining the generic twitter url (twitter.com/) with the author's specific handle tweet_author_url to produce twitter.com/tweet_author_url
@@ -112,10 +117,10 @@ async function findUserbyID(userID) {
 findTweetbyID(TWEET_ID).then(() => {
     findUserbyID(tweet_author_id).then(() => {
 
-        
-        // figure out if we are dealing with a Tweet or a Thread by seeing if the saved tweet author User ID matches the User ID of the tweet being replied to. If true, it is a thread. Else (e.g. if false or null (i.e. it doesn't reply to anything)) it is a Tweet. Users have to save the bottom of a thread if they want the thread, and automatically getting any tweets above it. Even if they don't want the thread, this adds context
-        
-        if (tweet_author_id==tweet_replying_to) {
+
+       // figure out if we are dealing with a Tweet or a Thread by seeing if the saved tweet author User ID matches the User ID of the tweet being replied to. If true, it is a thread. Else (e.g. if false or null (i.e. it doesn't reply to anything)) it is a Tweet. Users have to save the bottom of a thread if they want the thread, and automatically getting any tweets above it. Even if they don't want the thread, this adds context
+
+        if (tweet_author_id==tweet_replying_to_author) {
             var tweet_thread_status = "Thread";     // if the authorID matches that of the tweet which the saved tweet replies to, it is a thread
             replied_to_tweet_ID = tweet_response_storage.data[0].referenced_tweets[0].id;   //pull the tweetID above the saved tweet, in the thread
             
