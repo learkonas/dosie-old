@@ -28,7 +28,7 @@ let cover_bank_number = Math.floor(Math.random() * 13);
 cover_image_url = cover_image_url_bank[cover_bank_number];
 
 
-export async function addItem(tweet, tag1, tag2, source, url, type, length, tweet_date, author_pfp, spare) { // note to self, you can have items at the end that are not always used. Useful for storing thread info
+export async function addItem(tweet, tag1, tag2, source, url, type, length, tweet_date, author_pfp, spare) {
   try {
     const response = await notion.pages.create({
       "parent": {

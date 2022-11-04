@@ -20,15 +20,14 @@ var tweet_replying_to_author = "tweet_replying_to_author"; //User ID
 var replied_to_tweet_ID = "replied_to_tweet_ID";           //Tweet ID
 var tweet_author_pfp_url = "tweet_author_pfp_url";
 var tweet_thread_status = "Tweet";
-var tweet_response_original = "tweet_response_original";
+var originalTweet = [];
 
 const client = new Client(process.env.TW_BEARER);  // establishing authentication for Twitter API
 
-var tweet_counter = 0;
+var length = 0;
 
 // FIND TWEET BY ID
 async function findTweetbyID(tweetID) {                                  // defining find Tweet by ID function
-    tweet_counter++;
     const tweet_response_current = await client.tweets.findTweetsById({
         "ids": [
             tweetID
@@ -80,9 +79,6 @@ async function findTweetbyID(tweetID) {                                  // defi
     });    //querying the Twitter API for the tweet by the tweet ID
     //console.log(tweet_response_current);                                               //print response
     //console.log(JSON.stringify(tweet_response_current, null, 2))                       //print response in string form
-    if (tweet_counter == 1) {
-        tweet_response_original = tweet_response_current;
-    }
     tweet_text = tweet_response_current.data[0].text;                                    //pulling the text of the saved tweet
     tweet_created = tweet_response_current.data[0].created_at;                           //pulling when the saved tweet was written, something like 2022-10-03T11:24:34.000Z
     tweet_created = tweet_created.substring(0, tweet_created.length - 14);       //adjust the created date to just the date w/o the time by removing the last 14 chars
@@ -102,7 +98,37 @@ async function findTweetbyID(tweetID) {                                  // defi
                     [tweet_address_url],
                     [TWEET_ID], [replied_to_tweet_ID],];
     finalArray.push(baseArray);
-    let last_tweet_item_in_array = finalArray.length - 1;
+    length = finalArray.length;
+    if (length == 1) {
+        originalTweet = baseArray;
+    }
+
+    if (baseArray[2] == baseArray[3]) {     //if the tweet author ID matches the ID of the tweet author above it, then...
+        tweetID = replied_to_tweet_ID       //take the ID of the tweet above it and make that the tweetID
+        findTweetbyID(tweetID);
+    }
+    else {
+        if (length == 1) {
+            tweet_thread_status = "Tweet";
+            //console.log("There IS ", length, "tweet.")
+            findUserbyID(tweet_author_id).then(() => {
+            addItem(originalTweet[0], "Tag1", "Tag2", coreStats[3], originalTweet[4], tweet_thread_status, length, originalTweet[1], coreStats[0]); //add the item, here an individual tweet, to Notion DB   
+            })
+            return;
+        }
+        else {
+            tweet_thread_status = "Thread";
+            //console.log("There ARE ", tweet_counter, "tweets.")  
+            findUserbyID(tweet_author_id).then(() => {    
+            finalArray.reverse(finalArray);
+            // what I need to do, to add threads properly, is when I do addItem, put the coreStats array and the finalArray array in the function, and then within the definition of that function, pull everything out into it's children
+            //maybe even define two addItem functions, one to add Tweets and one to add threads
+            //addItem(tweet_text, "Tag1", "Tag2", author_name, tweet_address_url, tweet_thread_status, length, tweet_created, tweet_author_pfp_url, tweet_text); //add the item to Notion DB
+        })
+
+        return;
+        }
+    }
 }
 
 // FIND USER BY ID
@@ -121,79 +147,3 @@ async function findUserbyID(userID) {
     coreStats = [[tweet_author_pfp_url], [tweet_author_id],
                 [tweet_author_url], [author_name],];
 }
-
-findTweetbyID(TWEET_ID).then(() => {
-    findUserbyID(tweet_author_id).then(() => {
-
-       // figure out if we are dealing with a Tweet or a Thread by seeing if the saved tweet author User ID matches the User ID of the tweet being replied to. If true, it is a thread. Else (e.g. if false or null (i.e. it doesn't reply to anything)) it is a Tweet. Users have to save the bottom of a thread if they want the thread, and automatically getting any tweets above it. Even if they don't want the thread, this adds context
-        if (coreStats[1]==tweet_replying_to_author) {   // if this is a while loop, it is infinite
-            console.log(coreStats[1])               //author ID of original tweet, constant
-            console.log(tweet_replying_to_author)   //
-            tweet_thread_status = "Thread";     // if the authorID matches that of the tweet which the saved tweet replies to, it is a thread
-            replied_to_tweet_ID = tweet_response_original.data[0].referenced_tweets[0].id;   //pull the tweetID above the saved tweet, in the thread
-            
-            findTweetbyID(replied_to_tweet_ID).then(() => {    
-                console.log(coreStats[1])                 
-                console.log(tweet_replying_to_author)
-                // STUCK HERE: CANNOT CARRY THESE VALUES OUTSIDE THE ASYNC FUNCTION
-            })     
-            console.log(tweet_replying_to_author) // STUCK HERE: CANNOT CARRY THIS VALUE OUTSIDE THE ASYNC FUNCTION - https://stackoverflow.com/questions/50425320/how-can-i-create-async-await-globally
-            console.log(finalArray)
-        }
-
-
-        if (tweet_counter == 1) {
-            tweet_thread_status = "Tweet";
-            //console.log("There IS ", tweet_counter, "tweet.")    
-        }
-        else {
-            //console.log("There ARE ", tweet_counter, "tweets.")  
-        } 
-        //addItem(tweet_text, "Tag1", "Tag2", author_name, tweet_address_url, tweet_thread_status, 2, tweet_created, tweet_author_pfp_url, tweet_text); //add the item to Notion DB
-    })
-})
-
-            //going to bed now, but this is how the logic could work for figuring out the length
-            /*
-
-                ID of the saved tweet is given, as is the full API response. This is tweet0
-                get the ID of the tweet above it from the API response. This is tweet1. We already know it's the same author because we're in the true part of the if statememnt
-                query that new tweetID (tweet1) with our function
-                store and clean the text of tweet1 and get the author ID of tweet above it (tweet2, or i+1) (which we get from above query)
-
-                                let i = 1
-                while:  authorID of tweet1(i) == authorID tweet2(i+1)
-                query tweet2(i+1)
-                store and clean text of tweet2(i+1)
-                i = i + 1
-                get the authorID of tweet3(i+1)
-
-                // upon reflection: this should be how I get all the tweets. Get an ID. Query it. While author ID matches the above tweet, query etc
-                        //      ie: rather than tucking it at the back separately
-
-                // use a do/while loop ... more info here: https://www.w3schools.com/js/js_loop_while.asp#:~:text=crash%20your%20browser.-,The%20Do%20While%20Loop,the%20condition%20is%20true.,-Syntax
-                
-                let i = 1
-            try {    
-                do {  
-                    query tweet(i)
-                    if i = 1 {
-                        save some standalone things, like the pfp url, the title, the source, the created date, thread/tweet status, etc
-                    }
-                    save the text and any media/polls etc - stuff we need for every tweet in the thread
-                    i++
-                }
-                while (authorID of tweet(i-1) == authorID of tweet(i))
-                        // need to figure out what to do when there is no tweet above it to be compared to. If this turns out to just have a value of 'undefined' or null, we're okay. But if it causes an error, then we could use try/catch(/finally)
-            }
-            catch {    
-                length of chain = i-1
-                if i = 2 {
-                    status = tweet
-                }
-                else {
-                    status = thread
-                }
-            }
-
-        */
