@@ -2,12 +2,9 @@ import { Client } from "@notionhq/client"
 import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 dotenv.config()
 
-
 const notion = new Client({ auth: process.env.NOTION_KEY })
-
 const databaseId = process.env.DB_ID
 
-var cover_image_url = "cover_image_url";
 const cover_image_url_bank = [
     "https://live.staticflickr.com/5571/14763952742_5405536208_b.jpg",  // 1
     "https://live.staticflickr.com/3853/14751243442_f8b19e649f_b.jpg",  // 2
@@ -25,10 +22,10 @@ const cover_image_url_bank = [
   ]
   
 let cover_bank_number = Math.floor(Math.random() * 13);
-cover_image_url = cover_image_url_bank[cover_bank_number];
+var cover_image_url = cover_image_url_bank[cover_bank_number];
 
 
-export async function addItem(tweet, tag1, tag2, source, url, type, length, tweet_date, author_pfp, spare) {
+export async function addTweet(tweet, tag1, tag2, source, url, type, length, tweet_date, author_pfp, top_line) {
   try {
     const response = await notion.pages.create({
       "parent": {
@@ -51,7 +48,7 @@ export async function addItem(tweet, tag1, tag2, source, url, type, length, twee
         "Tweet": {
           "title":[{
             "text": {
-              "content": tweet
+              "content": top_line
             }
           }]
         },
@@ -96,7 +93,7 @@ export async function addItem(tweet, tag1, tag2, source, url, type, length, twee
             "heading_3": {
               "rich_text": [{
                 "text": {
-                  "content": "Heading 3"
+                  "content": top_line
                 }
               }]
             }
@@ -117,23 +114,107 @@ export async function addItem(tweet, tag1, tag2, source, url, type, length, twee
       ]
     })
     //console.log(response)
-    console.log("Success! Entry added.")
+    console.log("Success! Tweet added.")
   } catch (e) {
     console.error(e.body)
   }
 }
 
-//addItem("Tweet content goes here", "Tag1", "Tag2", "Author", "https://google.com", "Tweet", 1, "2022-10-03") 
-
-
-
-/*
-Tweet = Copy and paste the bookmarked tweet / top tweet in thread
-TagX = hashtags in the call tweet
-Author = name of author in the bookmarked tweet
-Link = Link to the bookmarked tweet
-Thread/Tweet = whether it is a tweet or thread being saved
-Length = length of thread (incl. 1)
-Tweet_date = the date the tweet was published 
-ALSO, need vars for the bookmarked author's profile pic, something for the cover photo, and the objects for the bookmarked tweet
-*/
+export async function addThread(finalArray, coreStats) {
+  var thread_text = [];
+  for (var i = 0; i < finalArray.length; i++) {
+    thread_text.push(finalArray[i][0])
+  }
+  try {
+    const response = await notion.pages.create({
+      "parent": {
+        "type": "database_id",
+        "database_id": databaseId
+      },
+      "icon": {
+        "type": "external",
+        "external": {
+          "url": String(coreStats[0]) //tweet_author_pfp_url, scaled to 400x400
+        }
+      },
+      "cover": {
+        "type": "external",
+        "external": {
+          "url": cover_image_url
+        },
+      },
+      properties: {
+        "Tweet": {
+          "title":[{
+            "text": {
+              "content": String(coreStats[4]) //top_line
+            }
+          }]
+        },
+        "Source": {
+          "rich_text": [{
+            "text": {
+              "content": String(coreStats[3]), // author_name
+              "link": {
+                "url": String(finalArray[0][4]) //tweet_address_url
+              }
+            },
+            "href": String(finalArray[0][4]) //tweet_address_url
+          }]
+        },
+        "Type": {
+          "select": {
+            "name": "Thread"
+          }
+        },
+        "Length": {
+          "number": finalArray.length
+        },
+        "Tweeted": {
+          "date": {
+            "start": String(finalArray[0][1])
+          }
+        },
+        "Tags": { 
+          "multi_select": [
+            {
+              "name": "Tag1"
+            },
+            {
+              "name": "Tag2"
+            }
+          ]
+        },
+      },
+      "children": [
+        {
+          "object": "block",
+            "heading_3": {
+              "rich_text": [{
+                "text": {
+                  "content": String(coreStats[4]) //top_line
+                }
+              }]
+            }
+        },
+        {
+          "object": "block",
+            "paragraph": {
+              "rich_text": [
+                {
+                  "text": {
+                    "content": String(thread_text)
+                  },
+                }
+              ],
+              "color": "default"
+            }
+        }
+      ]
+    })
+    //console.log(response)
+    console.log("Success! Thread added.")
+  } catch (e) {
+    console.error(e.body)
+  }
+}

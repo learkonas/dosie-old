@@ -1,7 +1,8 @@
 import { Client } from "twitter-api-sdk";
 import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 dotenv.config();
-import { addItem } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
+import { addTweet } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
+import { addThread } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
 
 const TWEET_ID = "1586294774587305984";  // this is the crucial tweet ID that determines everything else
 var finalArray = []; // this will be the final array of all the tweets etc that we use to populate a page in the Notion DB
@@ -21,6 +22,7 @@ var replied_to_tweet_ID = "replied_to_tweet_ID";           //Tweet ID
 var tweet_author_pfp_url = "tweet_author_pfp_url";
 var tweet_thread_status = "Tweet";
 var originalTweet = [];
+var top_line = "";   //top line to be the title of the page
 
 
 const client = new Client(process.env.TW_BEARER);  // establishing authentication for Twitter API
@@ -104,32 +106,44 @@ async function findTweetbyID(tweetID) {                                  // defi
     if (length == 1) {
         originalTweet = baseArray;
     }
-
-    if (String(baseArray[2]) == String(baseArray[3])) {     //if the tweet author ID matches the ID of the tweet author above it, then...
+    
+    if (Number(baseArray[2]) == Number(baseArray[3])) {     //if the tweet author ID matches the ID of the tweet author above it, then...
         tweetID = replied_to_tweet_ID       //take the ID of the tweet above it and make that the tweetID
         findTweetbyID(tweetID);
     }
-    else {
+    else {  
+        finalArray.reverse(finalArray);
+
+        let top_line_ends = String(finalArray[0][0]).indexOf("\n");    //cleaning up the title for the page on Notion
+        console.log(top_line_ends)
+        if (top_line_ends < 0) {                
+            top_line = String(finalArray[0][0]).substring(0, 35); 
+            top_line = top_line+"..." 
+        }
+        else if (top_line_ends < 40){
+            top_line = String(finalArray[0][0]).substring(0, top_line_ends);
+        }
+        else {          
+            top_line = String(finalArray[0][0]).substring(0, 50); 
+            top_line = top_line+"..."
+        }
+
         if (length == 1) {
             tweet_thread_status = "Tweet";
-            console.log("There is", String(length), "tweet.")
+            //console.log("There is", String(length), "tweet.")
             findUserbyID(tweet_author_id).then(() => {
-            addItem(String(originalTweet[0]), "Tag1", "Tag2", String(coreStats[3]), String(originalTweet[4]), tweet_thread_status, length, String(originalTweet[1]), String(coreStats[0])); //add the item, here an individual tweet, to Notion DB   
+            addTweet(String(originalTweet[0]), "Tag1", "Tag2", String(coreStats[3]), String(originalTweet[4]), tweet_thread_status, length, String(originalTweet[1]), String(coreStats[0]), top_line); //add the item, here an individual tweet, to Notion DB   
             })
             return;
         }
         else {
             tweet_thread_status = "Thread";
-            console.log("There are", String(length), "tweets.")  
-            findUserbyID(tweet_author_id).then(() => {    
-            finalArray.reverse(finalArray);
-            console.log(finalArray)
-            // what I need to do, to add threads properly, is when I do addItem, put the coreStats array and the finalArray array in the function, and then within the definition of that function, pull everything out into it's children
-            //maybe even define two addItem functions, one to add Tweets and one to add threads
-            //addItem(tweet_text, "Tag1", "Tag2", author_name, tweet_address_url, tweet_thread_status, length, tweet_created, tweet_author_pfp_url, tweet_text); //add the item to Notion DB
-        })
+            //console.log("There are", String(length), "tweets.")  
+            findUserbyID(tweet_author_id).then(() => {  
+            addThread(finalArray, coreStats); //add the item, here a multi-tweet thread, to Notion DB   
+            })
 
-        return;
+            return;
         }
     }
 }
@@ -147,7 +161,7 @@ async function findUserbyID(userID) {
     tweet_author_username = user_response.data.username;   //  getting the Handle of the author of the saved tweet
     tweet_author_url = twitter_url+tweet_author_username   //  combining the generic twitter url (twitter.com/) with the author's specific handle tweet_author_url to produce twitter.com/tweet_author_url
     coreStats = [[tweet_author_pfp_url], [tweet_author_id],
-                [tweet_author_url], [author_name],];
+                [tweet_author_url], [author_name], [top_line]];
 }
 
 findTweetbyID(TWEET_ID);
