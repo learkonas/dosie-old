@@ -142,7 +142,6 @@ async function findTweetbyID(tweetID) {                                  // defi
             findUserbyID(tweet_author_id).then(() => {  
             addThread(finalArray, coreStats); //add the item, here a multi-tweet thread, to Notion DB   
             })
-
             return;
         }
     }
