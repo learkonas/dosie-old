@@ -22,6 +22,7 @@ var tweet_author_pfp_url = "tweet_author_pfp_url";
 var tweet_thread_status = "Tweet";
 var originalTweet = [];
 
+
 const client = new Client(process.env.TW_BEARER);  // establishing authentication for Twitter API
 
 var length = 0;
@@ -86,6 +87,7 @@ async function findTweetbyID(tweetID) {                                  // defi
     tweet_replying_to_author = tweet_response_current.data[0].in_reply_to_user_id;       //pulling the User ID  to which the saved tweet is replying to
     replied_to_tweet_ID = tweet_response_current.data[0].referenced_tweets[0].id;    //pulling the Tweet ID to which the saved tweet is replying to
     let tweet_address_url = tweet_address_url_base+TWEET_ID;                            // combining the generic address for tweets (twitter.com/i/status/) with the specific tweet_ID, to make twitter.com/i/status/tweet_ID
+    tweet_author_pfp_url = tweet_response_current.includes.users[0].profile_image_url;   //pulling pfp url of the author
 
     // removing reply-to tags from the start of a tweet. E.g if someone replies to a tweet, it comes up something like "@replied_to_account hello Replied To Account, I am replying to your tweet"
     while (tweet_text.startsWith("@")) {    // trigger this while the tweet_text begins with @ 
@@ -103,24 +105,25 @@ async function findTweetbyID(tweetID) {                                  // defi
         originalTweet = baseArray;
     }
 
-    if (baseArray[2] == baseArray[3]) {     //if the tweet author ID matches the ID of the tweet author above it, then...
+    if (String(baseArray[2]) == String(baseArray[3])) {     //if the tweet author ID matches the ID of the tweet author above it, then...
         tweetID = replied_to_tweet_ID       //take the ID of the tweet above it and make that the tweetID
         findTweetbyID(tweetID);
     }
     else {
         if (length == 1) {
             tweet_thread_status = "Tweet";
-            //console.log("There IS ", length, "tweet.")
+            console.log("There is", String(length), "tweet.")
             findUserbyID(tweet_author_id).then(() => {
-            addItem(originalTweet[0], "Tag1", "Tag2", coreStats[3], originalTweet[4], tweet_thread_status, length, originalTweet[1], coreStats[0]); //add the item, here an individual tweet, to Notion DB   
+            addItem(String(originalTweet[0]), "Tag1", "Tag2", String(coreStats[3]), String(originalTweet[4]), tweet_thread_status, length, String(originalTweet[1]), String(coreStats[0])); //add the item, here an individual tweet, to Notion DB   
             })
             return;
         }
         else {
             tweet_thread_status = "Thread";
-            //console.log("There ARE ", tweet_counter, "tweets.")  
+            console.log("There are", String(length), "tweets.")  
             findUserbyID(tweet_author_id).then(() => {    
             finalArray.reverse(finalArray);
+            console.log(finalArray)
             // what I need to do, to add threads properly, is when I do addItem, put the coreStats array and the finalArray array in the function, and then within the definition of that function, pull everything out into it's children
             //maybe even define two addItem functions, one to add Tweets and one to add threads
             //addItem(tweet_text, "Tag1", "Tag2", author_name, tweet_address_url, tweet_thread_status, length, tweet_created, tweet_author_pfp_url, tweet_text); //add the item to Notion DB
@@ -134,7 +137,6 @@ async function findTweetbyID(tweetID) {                                  // defi
 // FIND USER BY ID
 async function findUserbyID(userID) {
     // scaling up the profile image from _normal to _400x400
-    tweet_author_pfp_url = tweet_response_original.includes.users[0].profile_image_url;   //pulling pfp url of the author
     if (tweet_author_pfp_url.endsWith("normal.jpg")) {                                                  // is this image 'normal'
         tweet_author_pfp_url = tweet_author_pfp_url.substring(0, tweet_author_pfp_url.length - 10);     // if so, let's change that. Get rid of the normal.jpg ending by removing the last 10 chars
         tweet_author_pfp_url = tweet_author_pfp_url.concat("400x400.jpg");                            // and make it bigger by adding 400x400.jpg to the end instead
@@ -147,3 +149,5 @@ async function findUserbyID(userID) {
     coreStats = [[tweet_author_pfp_url], [tweet_author_id],
                 [tweet_author_url], [author_name],];
 }
+
+findTweetbyID(TWEET_ID);
