@@ -70,7 +70,7 @@ async function findTweetbyID(tweetID) {                                  // defi
       "user.fields": [
          "id",
          "name",
-         "profile_image_url",  // this produces a link in the form: https://pbs.twimg.com/profile_images/19_DIGIT_NUMBER/8_(NON)CAPS_LETTERS_normal.jpg but I would like it to be this, but ending _400x400.jpg... might not be worth the effort
+         "profile_image_url",
          "protected",
          "url",
          "username",
