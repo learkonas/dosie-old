@@ -26,98 +26,108 @@ var cover_image_url = cover_image_url_bank[cover_bank_number];
 
 
 export async function addTweet(tweet, tag1, tag2, source, url, type, length, tweet_date, author_pfp, top_line) {
-  try {
-    const response = await notion.pages.create({
-      "parent": {
-        "type": "database_id",
-        "database_id": databaseId
-      },
-      "icon": {
-        "type": "external",
-        "external": {
-          "url": author_pfp
-        }
-      },
-      "cover": {
-        "type": "external",
-        "external": {
-          "url": cover_image_url
-        },
-      },
-      properties: {
-        "Tweet": {
-          "title":[{
-            "text": {
-              "content": top_line
+   try {
+      const response = await notion.pages.create({
+         "parent": {
+         "type": "database_id",
+         "database_id": databaseId
+         },
+         "icon": {
+            "type": "external",
+            "external": {
+               "url": author_pfp
             }
-          }]
-        },
-        "Source": {
-          "rich_text": [{
-            "text": {
-              "content": source,
-              "link": {
-                "url": url
-              }
+         },
+         "cover": {
+            "type": "external",
+            "external": {
+               "url": cover_image_url
             },
-            "href": url
-          }]
-        },
-        "Type": {
-          "select": {
-            "name": type
-          }
-        },
-        "Length": {
-          "number": length
-        },
-        "Tweeted": {
-          "date": {
-            "start": tweet_date
-          }
-        },
-        "Tags": { 
-          "multi_select": [
-            {
-              "name": tag1,
+         },
+         properties: {
+            "Tweet": {
+               "title":[{
+                  "text": {
+                     "content": top_line
+                  }
+               }]
             },
-            {
-              "name": tag2,
-            }
-          ]
-        },
-      },
-      "children": [
-        {
-          "object": "block",
-            "heading_3": {
-              "rich_text": [{
-                "text": {
-                  "content": top_line
-                }
-              }]
-            }
-        },
-        {
-          "object": "block",
-            "paragraph": {
-              "rich_text": [
-                {
-                  "text": { //this may  need to be some kind of array to display the tweet or thread and may need an if statement
-                    "content": tweet,
+            "Source": {
+               "rich_text": [{
+                  "text": {
+                     "content": source,
+                     "link": {
+                        "url": url
+                     }
                   },
-                }
-              ],
-              "color": "default"
+                  "href": url
+               }]
+            },
+            "Type": {
+               "select": {
+                  "name": type
+               }
+            },
+            "Length": {
+               "number": length
+            },
+            "Tweeted": {
+               "date": {
+                  "start": tweet_date
+               }
+            },
+            "Tags": { 
+               "multi_select": [
+                  { "name": tag1, },
+                  { "name": tag2, }
+               ]
+            },
+         },
+         "children": [
+            {  "object": "block",
+               "heading_3": {
+                  "rich_text": [{
+                     "text": {
+                        "content": top_line
+                     }
+                  }]
+               }
+            },
+            {  "object": "block",
+               "paragraph": {
+                  "rich_text": [{
+                     "text": { //this may  need to be some kind of array to display the tweet or thread and may need an if statement
+                        "content": tweet,
+                     },
+                  }],
+                  "color": "default"
+               }
             }
-        }
-      ]
-    })
-    //console.log(response)
-    console.log("Success! Tweet added.")
-  } catch (e) {
-    console.error(e.body)
-  }
+         ]
+      })
+      //console.log(response)
+      const tweetBlockId = response["id"] 
+      const responseClosing = await notion.blocks.children.append({
+         block_id: tweetBlockId,
+         children: [
+            {  "paragraph": {
+                  "rich_text": [{
+                     "text": {
+                        "content": "Click to read on Twitter",
+                        "link": {
+                           "url": url
+                        }
+                     }
+                  }]
+               }
+            }
+         ]
+      })
+      console.log("Success! Tweet added.")
+   }
+   catch (e) {
+      console.error(e.body)
+   }
 }
 
 export async function addThread(finalArray, coreStats) {
@@ -189,11 +199,10 @@ export async function addThread(finalArray, coreStats) {
             }
          }]
       })
-      //console.log(response)
-      const blockId = response["id"]   
+      const threadBlockId = response["id"]   
       for (var i = 0; i < finalArray.length; i++) {
          const responseTweet = await notion.blocks.children.append({
-         block_id: blockId,
+         block_id: threadBlockId,
             children: [
                /*{
                   "paragraph": {
