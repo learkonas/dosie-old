@@ -209,7 +209,7 @@ export async function addThread(finalArray, coreStats) {
                      "rich_text": [{
                         "type": "text",
                         "text": {
-                           "content": String(finalArray[i][0]) + "\n \n" + '[here](String(finalArray[i][4]))',
+                           "content": String(finalArray[i][0]) + "\n \n" + '[goog](String(finalArray[i][4]))' + '[goog](https://google.com)',
                         }
                   }],
                }
@@ -224,7 +224,7 @@ export async function addThread(finalArray, coreStats) {
          var top_link = String(finalArray[0][4])
       }
       const responseClosing = await notion.blocks.children.append({
-         block_id: blockId,
+         block_id: threadBlockId,
          children: [
             {
                "paragraph": {
@@ -243,6 +243,6 @@ export async function addThread(finalArray, coreStats) {
       console.log("Success! Thread added.")
    }
    catch (e) {
-      console.error(e.body)
+      console.error(e)
    }
 }

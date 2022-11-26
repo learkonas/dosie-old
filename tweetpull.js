@@ -4,7 +4,7 @@ dotenv.config();
 import { addTweet } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
 import { addThread } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
 
-const TWEET_ID = "1575762787929714688";  // this is the crucial tweet ID that determines everything else
+const TWEET_ID = "1575762790325047298";  // this is the crucial tweet ID that determines everything else
 var finalArray = []; // this will be the final array of all the tweets etc that we use to populate a page in the Notion DB
 var coreStats = [];  // this will be the final array of the core data we add into that Notion DB page
 
