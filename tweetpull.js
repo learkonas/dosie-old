@@ -127,7 +127,7 @@ async function findTweetbyID(tweetID) {                                  // defi
          tweet_thread_status = "Tweet";
          //console.log("There is", String(length), "tweet.")
          findUserbyID(tweet_author_id).then(() => {
-            addTweet(String(originalTweet[0]), "Tag1", "Tag2", String(coreStats[3]), String(originalTweet[4]), tweet_thread_status, length, String(originalTweet[1]), String(coreStats[0]), top_line); //add the item, here an individual tweet, to Notion DB   
+            addTweet({tweet: String(originalTweet[0]), tag1: "Tag1", tag2: "Tag2", source: String(coreStats[3]), url: String(originalTweet[4]), type: tweet_thread_status, length: length, tweet_date: String(originalTweet[1]), author_pfp: String(coreStats[0]), top_line: top_line}); //add the item, here an individual tweet, to Notion DB
          })
          return;
       }

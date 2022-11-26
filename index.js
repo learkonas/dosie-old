@@ -25,7 +25,7 @@ let cover_bank_number = Math.floor(Math.random() * 13);
 var cover_image_url = cover_image_url_bank[cover_bank_number];
 
 
-export async function addTweet(tweet, tag1, tag2, source, url, type, length, tweet_date, author_pfp, top_line) {
+export async function addTweet({tweet, tag1, tag2, source, url, type, length, tweet_date, author_pfp, top_line}) {
    try {
       const response = await notion.pages.create({
          "parent": {
@@ -113,7 +113,7 @@ export async function addTweet(tweet, tag1, tag2, source, url, type, length, twe
             {  "paragraph": {
                   "rich_text": [{
                      "text": {
-                        "content": "Click to read on Twitter",
+                        "content": "Tap to read on Twitter",
                         "link": {
                            "url": url
                         }
@@ -204,21 +204,21 @@ export async function addThread(finalArray, coreStats) {
          const responseTweet = await notion.blocks.children.append({
          block_id: threadBlockId,
             children: [
-               /*{
+               {
                   "paragraph": {
                      "rich_text": [{
                         "type": "text",
                         "text": {
-                           "content": String(finalArray[i][0]) + "\n \n" + '<a href=\"http://google.com/\">Google</a>',
+                           "content": String(finalArray[i][0]) + "\n \n" + '[here](String(finalArray[i][4]))',
                         }
                   }],
                }
-               },         */        
-               {
+               },                
+               /*{
                   "embed": {
                      "url": String(finalArray[i][4])
                   }
-               }
+               }   */ 
             ],
          });
          var top_link = String(finalArray[0][4])
