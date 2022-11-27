@@ -102,6 +102,19 @@ export async function addTweet({tweet, tag1, tag2, source, url, type, length, tw
                   }],
                   "color": "default"
                }
+            },
+            {  "object": "block",
+               "paragraph": {
+                  "rich_text": [{
+                     "text": {
+                        "content": "Tap to read on Twitter",
+                        "link": {
+                           "url": url
+                        }
+                     }
+                  }],
+                  "color": "default"
+               }
             }
          ]
       })
@@ -110,7 +123,7 @@ export async function addTweet({tweet, tag1, tag2, source, url, type, length, tw
       const responseClosing = await notion.blocks.children.append({
          block_id: tweetBlockId,
          children: [
-            {  "paragraph": {
+            {  "callout": {
                   "rich_text": [{
                      "text": {
                         "content": "Tap to read on Twitter",
@@ -126,7 +139,7 @@ export async function addTweet({tweet, tag1, tag2, source, url, type, length, tw
       console.log("Success! Tweet added.")
    }
    catch (e) {
-      console.error(e.body)
+      console.error(e)
    }
 }
 
@@ -209,7 +222,7 @@ export async function addThread(finalArray, coreStats) {
                      "rich_text": [{
                         "type": "text",
                         "text": {
-                           "content": String(finalArray[i][0]) + "\n \n" + '[goog](String(finalArray[i][4]))' + '[goog](https://google.com)',
+                           "content": String(finalArray[i][0]),
                         }
                   }],
                }
@@ -221,7 +234,6 @@ export async function addThread(finalArray, coreStats) {
                }   */ 
             ],
          });
-         var top_link = String(finalArray[0][4])
       }
       const responseClosing = await notion.blocks.children.append({
          block_id: threadBlockId,
@@ -232,7 +244,7 @@ export async function addThread(finalArray, coreStats) {
                      "text": {
                         "content": "Click to read on Twitter",
                         "link": {
-                           "url": top_link
+                           "url": String(finalArray[0][4])
                         }
                      }
                   }]
