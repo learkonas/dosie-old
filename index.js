@@ -24,7 +24,6 @@ const cover_image_url_bank = [
 let cover_bank_number = Math.floor(Math.random() * 13);
 var cover_image_url = cover_image_url_bank[cover_bank_number];
 
-
 export async function addTweet({tweet, tag1, tag2, source, url, type, length, tweet_date, author_pfp, top_line}) {
    try {
       const response = await notion.pages.create({
