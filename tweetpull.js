@@ -4,7 +4,7 @@ dotenv.config();
 import { addTweet } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
 import { addThread } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
 
-const TWEET_ID = "1575762790325047298";  // this is the crucial tweet ID that determines everything else
+const TWEET_ID = "1533885253546172416";  // Tweet: 1596887480027869189; Thread: 1575762790325047298. This is the crucial tweet ID that determines everything else
 var finalArray = []; // this will be the final array of all the tweets etc that we use to populate a page in the Notion DB
 var coreStats = [];  // this will be the final array of the core data we add into that Notion DB page
 
@@ -23,7 +23,6 @@ var tweet_author_pfp_url = "tweet_author_pfp_url";
 var tweet_thread_status = "Tweet";
 var originalTweet = [];
 var top_line = "";   //top line to be the title of the page
-
 
 const client = new Client(process.env.TW_BEARER);  // establishing authentication for Twitter API
 
@@ -83,8 +82,8 @@ async function findTweetbyID(tweetID) {                                  // defi
    tweet_created = tweet_response_current.data[0].created_at;                           //pulling when the saved tweet was written, something like 2022-10-03T11:24:34.000Z
    tweet_created = tweet_created.substring(0, tweet_created.length - 14);       //adjust the created date to just the date w/o the time by removing the last 14 chars
    tweet_author_id = tweet_response_current.data[0].author_id;                          //pulling the author's User ID
-   tweet_replying_to_author = tweet_response_current.data[0].in_reply_to_user_id;       //pulling the User ID  to which the saved tweet is replying to
-   try { replied_to_tweet_ID = tweet_response_current.data[0].referenced_tweets[0].id; } catch {} // pulling the Tweet ID to which the saved tweet is replying to
+   tweet_replying_to_author = tweet_response_current.data[0].in_reply_to_user_id;       //pulling the User ID to which the saved tweet is replying to
+   try { replied_to_tweet_ID = tweet_response_current.data[0].referenced_tweets[tweet_response_current.data[0].referenced_tweets.length-1].id; } catch {} // pulling the Tweet ID to which the saved tweet is replying to
    let tweet_address_url = tweet_address_url_base+tweetID;                            // combining the generic address for tweets (twitter.com/i/status/) with the specific tweet_ID, to make twitter.com/i/status/tweet_ID
    tweet_author_pfp_url = tweet_response_current.includes.users[0].profile_image_url;   //pulling pfp url of the author
 

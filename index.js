@@ -101,40 +101,37 @@ export async function addTweet({tweet, tag1, tag2, source, url, type, length, tw
                   }],
                   "color": "default"
                }
-            },
-            {  "object": "block",
-               "paragraph": {
-                  "rich_text": [{
-                     "text": {
-                        "content": "Tap to read on Twitter",
-                        "link": {
-                           "url": url
-                        }
-                     }
-                  }],
-                  "color": "default"
-               }
             }
          ]
       })
       //console.log(response)
-      const tweetBlockId = response["id"] 
-      const responseClosing = await notion.blocks.children.append({
+      const tweetBlockId = response["id"]  
+      const responseClosing = await notion.blocks.children.append({ 
          block_id: tweetBlockId,
          children: [
-            {  "callout": {
-                  "rich_text": [{
-                     "text": {
-                        "content": "Tap to read on Twitter",
-                        "link": {
-                           "url": url
-                        }
+            {
+               "object": "block",
+               "divider": {}
+            },
+            {  "object": "block",
+            "paragraph": {
+               "rich_text": [{
+                  "text": {
+                     "content": "Tap to read on Twitter",
+                     "link": {
+                        "url": url
                      }
-                  }]
+                  }
+                  }],
+                  "color": "default"
                }
-            }
+            },
+            {  "embed": {
+                  "url": url
+               }
+            } 
          ]
-      })
+      }) // the ID of this appended block is at responseClosing["results"][0]["id"]
       console.log("Success! Tweet added.")
    }
    catch (e) {
@@ -214,18 +211,22 @@ export async function addThread(finalArray, coreStats) {
       const threadBlockId = response["id"]   
       for (var i = 0; i < finalArray.length; i++) {
          const responseTweet = await notion.blocks.children.append({
-         block_id: threadBlockId,
+            block_id: threadBlockId,
             children: [
                {
                   "paragraph": {
                      "rich_text": [{
                         "type": "text",
                         "text": {
-                           "content": String(finalArray[i][0]),
+                           "content": String(finalArray[i][0])
                         }
-                  }],
-               }
-               },                
+                     }],
+                  }
+               },  
+               {
+                  "object": "block",
+                  "divider": {}
+               },              
                /*{
                   "embed": {
                      "url": String(finalArray[i][4])
