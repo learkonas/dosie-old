@@ -4,7 +4,7 @@ dotenv.config();
 import { addTweet } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
 import { addThread } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
 
-const TWEET_ID = "1533885253546172416";  // Tweet: 1596887480027869189; Thread: 1575762790325047298. This is the crucial tweet ID that determines everything else
+const TWEET_ID = "1595183732989779970";  // Tweet: 1596887480027869189; Thread: 1575762790325047298. This is the crucial tweet ID that determines everything else
 var finalArray = []; // this will be the final array of all the tweets etc that we use to populate a page in the Notion DB
 var coreStats = [];  // this will be the final array of the core data we add into that Notion DB page
 
@@ -23,6 +23,8 @@ var tweet_author_pfp_url = "tweet_author_pfp_url";
 var tweet_thread_status = "Tweet";
 var originalTweet = [];
 var top_line = "";   //top line to be the title of the page
+var tweet_link = "start";
+var images_in_tweet = [];
 
 const client = new Client(process.env.TW_BEARER);  // establishing authentication for Twitter API
 
@@ -53,12 +55,12 @@ async function findTweetbyID(tweetID) {                                  // defi
          "referenced_tweets.id.author_id"
       ],
       "media.fields": [
-         "height",
-         "media_key",
+         //"height",
+         //"media_key",
          "preview_image_url",
          "type",
          "url",
-         "width"
+         //"width"
       ],
       "poll.fields": [
          "end_datetime",
@@ -78,7 +80,7 @@ async function findTweetbyID(tweetID) {                                  // defi
    });    //querying the Twitter API for the tweet by the tweet ID
    //console.log(tweet_response_current);                                               //print response
    //console.log(JSON.stringify(tweet_response_current, null, 2))                       //print response in string form
-   tweet_text = tweet_response_current.data[0].text;                                    //pulling the text of the saved tweet
+   tweet_text = tweet_response_current.data[0].text;                                   //pulling the text of the saved tweet
    tweet_created = tweet_response_current.data[0].created_at;                           //pulling when the saved tweet was written, something like 2022-10-03T11:24:34.000Z
    tweet_created = tweet_created.substring(0, tweet_created.length - 14);       //adjust the created date to just the date w/o the time by removing the last 14 chars
    tweet_author_id = tweet_response_current.data[0].author_id;                          //pulling the author's User ID
@@ -86,16 +88,29 @@ async function findTweetbyID(tweetID) {                                  // defi
    try { replied_to_tweet_ID = tweet_response_current.data[0].referenced_tweets[tweet_response_current.data[0].referenced_tweets.length-1].id; } catch {} // pulling the Tweet ID to which the saved tweet is replying to
    let tweet_address_url = tweet_address_url_base+tweetID;                            // combining the generic address for tweets (twitter.com/i/status/) with the specific tweet_ID, to make twitter.com/i/status/tweet_ID
    tweet_author_pfp_url = tweet_response_current.includes.users[0].profile_image_url;   //pulling pfp url of the author
-
+   
    // removing reply-to tags from the start of a tweet. E.g if someone replies to a tweet, it comes up something like "@replied_to_account hello Replied To Account, I am replying to your tweet"
    while (tweet_text.startsWith("@")) {    // trigger this while the tweet_text begins with @ 
       let replied_to_username_length = tweet_text.indexOf(" ") + 1;  //find after how many characters the username ends, leading to a " ". If @replied_to_account, then we get 18 + 1 = 19
       tweet_text = tweet_text.substring(replied_to_username_length); //removes the first 19 characters from the reply, leaving us with "hello Replied To Account..."       We then search to see if there is another replied-to account as well. If not, we move on
    }     //it also removes when tweets start with an @, which is an edge case
+   
+   if (tweet_response_current.includes.hasOwnProperty('media')) {                // checks if there is media in the tweet
+      tweet_text = tweet_text.substring(0, tweet_text.length-24)                 // removes the t.co link (it's always at the end, even if there is another link. Not sure how it reacts to polls, but I assume the same as QT, which are dealt with separately)
+      for (var i = 0; i < tweet_response_current.includes.media.length; i++) {   // adds every media link to a bank (to be embedded later?)
+         images_in_tweet.push(tweet_response_current.includes.media[i].url)
+      }
+   }
+   if (tweet_text.substring(tweet_text.length-23, tweet_text.length).includes("https://t.co/")) {  // if, after image link removal, there is still a t.co link
+      tweet_link = tweet_text.substring(tweet_text.length-23, tweet_text.length)                   // save that link (to be embedded later)
+      tweet_text = tweet_text.substring(0, tweet_text.length-24)                                   // cut it out from the main text
+   }
+
    let baseArray = [[tweet_text],[tweet_created],
                     [tweet_author_id], [tweet_replying_to_author],
                     [tweet_address_url],
-                    [TWEET_ID], [replied_to_tweet_ID],];
+                    [TWEET_ID], [replied_to_tweet_ID],
+                    [tweet_link], [images_in_tweet]];
    finalArray.push(baseArray);
    length = finalArray.length;
    if (length == 1) {
@@ -126,7 +141,7 @@ async function findTweetbyID(tweetID) {                                  // defi
          tweet_thread_status = "Tweet";
          //console.log("There is", String(length), "tweet.")
          findUserbyID(tweet_author_id).then(() => {
-            addTweet({tweet: String(originalTweet[0]), tag1: "Tag1", tag2: "Tag2", source: String(coreStats[3]), url: String(originalTweet[4]), type: tweet_thread_status, length: length, tweet_date: String(originalTweet[1]), author_pfp: String(coreStats[0]), top_line: top_line}); //add the item, here an individual tweet, to Notion DB
+            addTweet({tweet: String(originalTweet[0]), tag1: "Tag1", tag2: "Tag2", source: String(coreStats[3]), url: String(originalTweet[4]), type: tweet_thread_status, length: length, tweet_date: String(originalTweet[1]), author_pfp: String(coreStats[0]), top_line: top_line, tweet_link: tweet_link, images_in_tweet: images_in_tweet}); //add the item, here an individual tweet, to Notion DB
          })
          return;
       }

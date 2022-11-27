@@ -1,5 +1,6 @@
 import { Client } from "@notionhq/client"
 import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+import e from "express"
 dotenv.config()
 
 const notion = new Client({ auth: process.env.NOTION_KEY })
@@ -20,11 +21,16 @@ const cover_image_url_bank = [
    "https://live.staticflickr.com/614/19956900294_332cedbbf4_b.jpg",   // 12
    "https://live.staticflickr.com/5805/19933533444_be3160a125_b.jpg"   // 13 
 ]
-  
+
 let cover_bank_number = Math.floor(Math.random() * 13);
 var cover_image_url = cover_image_url_bank[cover_bank_number];
 
-export async function addTweet({tweet, tag1, tag2, source, url, type, length, tweet_date, author_pfp, top_line}) {
+export async function addTweet({tweet, tag1, tag2, source, url, type, length, tweet_date, author_pfp, top_line, tweet_link, images_in_tweet}) {
+   let number_of_images = images_in_tweet.length;
+   if (number_of_images > 0) {                                             // if there are images in the tweet
+      cover_bank_number = Math.floor(Math.random() * number_of_images);    // pick a random image from this selection, rather than default
+      cover_image_url = cover_image_url_bank[cover_bank_number];           // make that the cover image
+   }
    try {
       const response = await notion.pages.create({
          "parent": {
@@ -101,37 +107,60 @@ export async function addTweet({tweet, tag1, tag2, source, url, type, length, tw
                   }],
                   "color": "default"
                }
-            }
+            }          
          ]
       })
+      const tweetBlockId = response["id"]
       //console.log(response)
-      const tweetBlockId = response["id"]  
-      const responseClosing = await notion.blocks.children.append({ 
-         block_id: tweetBlockId,
-         children: [
-            {
-               "object": "block",
-               "divider": {}
-            },
-            {  "object": "block",
-            "paragraph": {
-               "rich_text": [{
-                  "text": {
-                     "content": "Tap to read on Twitter",
-                     "link": {
-                        "url": url
+      
+      for (var i = 0; i < images_in_tweet.length; i++) {  
+            const responseClosing = await notion.blocks.children.append({ 
+               block_id: tweetBlockId,
+               children: [
+                  {  "object": "block",
+                     "image": {
+                     "type": "external",
+                        "external": {
+                           "url": images_in_tweet[i]
+                        }
                      }
                   }
-                  }],
-                  "color": "default"
-               }
-            },
-            {  "embed": {
-                  "url": url
-               }
-            } 
-         ]
-      }) // the ID of this appended block is at responseClosing["results"][0]["id"]
+               ]
+            }) // the ID of this appended block is at responseClosing["results"][0]["id"]
+         }
+
+      if (tweet_link != "start") {
+         const responseClosing = await notion.blocks.children.append({ 
+            block_id: tweetBlockId,
+            children: [
+               {  "embed": {
+                  "url": tweet_link
+                  }
+               },
+               {  "object": "block",
+                  "divider": {}
+               },
+               {  "embed": {
+                     "url": url
+                  }
+               } 
+            ]
+         }) // the ID of this appended block is at responseClosing["results"][0]["id"]
+      }
+      else {
+         const responseClosing = await notion.blocks.children.append({ 
+            block_id: tweetBlockId,
+            children: [
+               {  "object": "block",
+                  "divider": {}
+               },
+               {  "embed": {
+                     "url": url
+                  }
+               } 
+            ]
+         }) // the ID of this appended block is at responseClosing["results"][0]["id"]
+      }
       console.log("Success! Tweet added.")
    }
    catch (e) {
