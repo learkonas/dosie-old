@@ -24,13 +24,9 @@ const cover_image_url_bank = [
 
 let cover_bank_number = Math.floor(Math.random() * 13);
 var cover_image_url = cover_image_url_bank[cover_bank_number];
+var links_in_thread = [];
 
-export async function addTweet({tweet, tag1, tag2, source, url, type, length, tweet_date, author_pfp, top_line, tweet_link, images_in_tweet}) {
-   let number_of_images = images_in_tweet.length;
-   if (number_of_images > 0) {                                             // if there are images in the tweet
-      cover_bank_number = Math.floor(Math.random() * number_of_images);    // pick a random image from this selection, rather than default
-      cover_image_url = cover_image_url_bank[cover_bank_number];           // make that the cover image
-   }
+export async function addTweet({tweet, tag1, tag2, source, url, type, length, tweet_date, author_pfp, top_line, tweet_link, images_in_tweet, poll_options, poll_close_date}) {
    try {
       const response = await notion.pages.create({
          "parent": {
@@ -101,7 +97,7 @@ export async function addTweet({tweet, tag1, tag2, source, url, type, length, tw
             {  "object": "block",
                "paragraph": {
                   "rich_text": [{
-                     "text": { //this may  need to be some kind of array to display the tweet or thread and may need an if statement
+                     "text": {
                         "content": tweet,
                      },
                   }],
@@ -110,57 +106,82 @@ export async function addTweet({tweet, tag1, tag2, source, url, type, length, tw
             }          
          ]
       })
+
       const tweetBlockId = response["id"]
       //console.log(response)
-      
-      for (var i = 0; i < images_in_tweet.length; i++) {  
-            const responseClosing = await notion.blocks.children.append({ 
-               block_id: tweetBlockId,
-               children: [
-                  {  "object": "block",
-                     "image": {
-                     "type": "external",
-                        "external": {
-                           "url": images_in_tweet[i]
-                        }
-                     }
-                  }
-               ]
-            }) // the ID of this appended block is at responseClosing["results"][0]["id"]
-         }
-
-      if (tweet_link != "start") {
+      if (tweet_link != "") {
          const responseClosing = await notion.blocks.children.append({ 
             block_id: tweetBlockId,
             children: [
                {  "embed": {
                   "url": tweet_link
                   }
-               },
-               {  "object": "block",
-                  "divider": {}
-               },
-               {  "embed": {
-                     "url": url
-                  }
-               } 
+               }
             ]
          }) // the ID of this appended block is at responseClosing["results"][0]["id"]
-      }
-      else {
+      } 
+      if (poll_options != "start") {
+         for (var i = 0; i < poll_options.length; i++) {  
+            const responseClosing = await notion.blocks.children.append({ 
+               block_id: tweetBlockId,
+               children: [
+                  {  "object": "block",
+                     "paragraph": {
+                        "rich_text": [{
+                           "text": {
+                              "content": poll_options[i].label + ": " + poll_options[i].votes
+                           },
+                        }],
+                     }
+                  }
+               ]
+            }) // the ID of this appended block is at responseClosing["results"][0]["id"]
+         }
          const responseClosing = await notion.blocks.children.append({ 
             block_id: tweetBlockId,
             children: [
                {  "object": "block",
-                  "divider": {}
-               },
-               {  "embed": {
-                     "url": url
+                  "paragraph": {
+                     "rich_text": [{
+                        "text": {
+                           "content": poll_close_date
+                        },
+                        "annotations": { "italic": true }
+                     }],
                   }
-               } 
+               }
             ]
          }) // the ID of this appended block is at responseClosing["results"][0]["id"]
       }
+
+      for (var i = 0; i < images_in_tweet.length; i++) {  
+         const responseClosing = await notion.blocks.children.append({ 
+            block_id: tweetBlockId,
+            children: [
+               {  "object": "block",
+                  "image": {
+                  "type": "external",
+                     "external": {
+                        "url": images_in_tweet[i]
+                     }
+                  }
+               }
+            ]
+         }) // the ID of this appended block is at responseClosing["results"][0]["id"]
+      }
+
+      const responseClosing = await notion.blocks.children.append({ 
+         block_id: tweetBlockId,
+         children: [
+            {  "object": "block",
+               "divider": {}
+            },
+            {  "embed": {
+                  "url": url
+               }
+            } 
+         ]
+      }) // the ID of this appended block is at responseClosing["results"][0]["id"]   
       console.log("Success! Tweet added.")
    }
    catch (e) {
@@ -248,41 +269,62 @@ export async function addThread(finalArray, coreStats) {
                         "type": "text",
                         "text": {
                            "content": String(finalArray[i][0])
-                        }
+                        },
                      }],
                   }
-               },  
+               },
                {
                   "object": "block",
                   "divider": {}
-               },              
-               /*{
-                  "embed": {
-                     "url": String(finalArray[i][4])
-                  }
-               }   */ 
+               }
             ],
          });
+         if (finalArray[i][7] != "") {
+            links_in_thread.push(finalArray[i][7])
+         }
       }
       const responseClosing = await notion.blocks.children.append({
          block_id: threadBlockId,
          children: [
             {
-               "paragraph": {
-                  "rich_text": [{
-                     "text": {
-                        "content": "Click to read on Twitter",
-                        "link": {
-                           "url": String(finalArray[0][4])
-                        }
-                     }
-                  }]
+               "embed": {
+                  "url": String(finalArray[0][4])
                }
             }
          ]
       })
       console.log("Success! Thread added.")
-   }
+      if (links_in_thread.length > 1) {
+         const responseClosing = await notion.blocks.children.append({
+            block_id: threadBlockId,
+            children: [
+               {
+                  "paragraph": {
+                     "rich_text": [{
+                        "type": "text",
+                        "text": {
+                           "content": "The following links were used in this thread:"
+                        },
+                        "annotations": {"italic": true}
+                     }],
+                  }
+               }
+            ]
+         })
+         for (var i = 0; i < links_in_thread.length; i++) {
+            const responseClosing = await notion.blocks.children.append({
+               block_id: threadBlockId,
+               children: [
+                  {
+                     "embed": {
+                        "url": String(links_in_thread[i])
+                     }
+                  }
+               ]
+            }) 
+         }
+      }
+   }   
    catch (e) {
       console.error(e)
    }

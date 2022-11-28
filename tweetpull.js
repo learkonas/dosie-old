@@ -3,8 +3,9 @@ import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-d
 dotenv.config();
 import { addTweet } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
 import { addThread } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
+import e from "express";
 
-const TWEET_ID = "1595183732989779970";  // Tweet: 1596887480027869189; Thread: 1575762790325047298. This is the crucial tweet ID that determines everything else
+const TWEET_ID = "1597030551382171648";  // Tweet: 1596887480027869189; Thread: 1575762790325047298. This is the crucial tweet ID that determines everything else
 var finalArray = []; // this will be the final array of all the tweets etc that we use to populate a page in the Notion DB
 var coreStats = [];  // this will be the final array of the core data we add into that Notion DB page
 
@@ -23,7 +24,10 @@ var tweet_author_pfp_url = "tweet_author_pfp_url";
 var tweet_thread_status = "Tweet";
 var originalTweet = [];
 var top_line = "";   //top line to be the title of the page
-var tweet_link = "start";
+var tweet_link = "";
+var tweet_link_twt = "";
+var poll_options = "start";
+var poll_close_date = "start";
 var images_in_tweet = [];
 
 const client = new Client(process.env.TW_BEARER);  // establishing authentication for Twitter API
@@ -78,7 +82,7 @@ async function findTweetbyID(tweetID) {                                  // defi
          "withheld"
       ]
    });    //querying the Twitter API for the tweet by the tweet ID
-   //console.log(tweet_response_current);                                               //print response
+   //console.log(tweet_response_current.includes.polls);                                               //print response
    //console.log(JSON.stringify(tweet_response_current, null, 2))                       //print response in string form
    tweet_text = tweet_response_current.data[0].text;                                   //pulling the text of the saved tweet
    tweet_created = tweet_response_current.data[0].created_at;                           //pulling when the saved tweet was written, something like 2022-10-03T11:24:34.000Z
@@ -94,28 +98,47 @@ async function findTweetbyID(tweetID) {                                  // defi
       let replied_to_username_length = tweet_text.indexOf(" ") + 1;  //find after how many characters the username ends, leading to a " ". If @replied_to_account, then we get 18 + 1 = 19
       tweet_text = tweet_text.substring(replied_to_username_length); //removes the first 19 characters from the reply, leaving us with "hello Replied To Account..."       We then search to see if there is another replied-to account as well. If not, we move on
    }     //it also removes when tweets start with an @, which is an edge case
-   
-   if (tweet_response_current.includes.hasOwnProperty('media')) {                // checks if there is media in the tweet
-      tweet_text = tweet_text.substring(0, tweet_text.length-24)                 // removes the t.co link (it's always at the end, even if there is another link. Not sure how it reacts to polls, but I assume the same as QT, which are dealt with separately)
-      for (var i = 0; i < tweet_response_current.includes.media.length; i++) {   // adds every media link to a bank (to be embedded later?)
-         images_in_tweet.push(tweet_response_current.includes.media[i].url)
+
+   if (tweet_response_current.data[0].referenced_tweets[0].type == 'quoted') {   // if there is a quoted tweeted (auto-placed t.co link at end, always)
+      tweet_text = tweet_text.substring(0, tweet_text.length-24)                 // ...then cut it out from the main text
+   }
+   if (tweet_response_current.includes.hasOwnProperty('media')) {                   // checks if there is media in the tweet
+      if (tweet_response_current.includes.media.type == 'photo') {                  // checks is media is photo. If video, we ignore
+         for (var i = 0; i < tweet_response_current.includes.media.length; i++) {   // adds every media link to a bank (to be embedded later if a tweet, but if a thread))
+            images_in_tweet.push(tweet_response_current.includes.media[i].url)
+         }
       }
+      tweet_text = tweet_text.substring(0, tweet_text.length-24)                 // removes the t.co link (it's always at the end, unless there is a QT, which is removed above
    }
    if (tweet_text.substring(tweet_text.length-23, tweet_text.length).includes("https://t.co/")) {  // if, after image link removal, there is still a t.co link
-      tweet_link = tweet_text.substring(tweet_text.length-23, tweet_text.length)                   // save that link (to be embedded later)
-      tweet_text = tweet_text.substring(0, tweet_text.length-24)                                   // cut it out from the main text
+      tweet_link = tweet_text.substring(tweet_text.length-23, tweet_text.length)                 // save that link (to be embedded later)
+      tweet_link_twt = tweet_link;
+      tweet_text = tweet_text.substring(0, tweet_text.length-24)                                  // cut it out from the main text
+   }
+   if (tweet_text.endsWith("\n")) {                                  // if tweet ends with a line break, delete the line break
+      tweet_text = tweet_text.substring(0, tweet_text.length-2) 
+   }
+   if (tweet_response_current.includes.hasOwnProperty('polls')) {          // check if there is a poll
+      poll_options = tweet_response_current.includes.polls[0].options      // adds poll to an array
+      let T_at = tweet_response_current.includes.polls[0].end_datetime.indexOf("T")
+      if (tweet_response_current.includes.polls[0].voting_status == 'closed') {
+         poll_close_date = "This poll closed on "
+      }
+      else {
+         poll_close_date = "This poll closes on "
+      }
+      poll_close_date = poll_close_date + (tweet_response_current.includes.polls[0].end_datetime.substring(0, T_at)) + "."
    }
 
    let baseArray = [[tweet_text],[tweet_created],
                     [tweet_author_id], [tweet_replying_to_author],
                     [tweet_address_url],
                     [TWEET_ID], [replied_to_tweet_ID],
-                    [tweet_link], [images_in_tweet]];
+                    [tweet_link_twt], images_in_tweet, poll_options, [poll_close_date]];
+   tweet_link = "";
    finalArray.push(baseArray);
    length = finalArray.length;
-   if (length == 1) {
-      originalTweet = baseArray;
-   }
+   if (length == 1) { originalTweet = baseArray; }
     
    if (Number(baseArray[2]) == Number(baseArray[3])) {     //if the tweet author ID matches the ID of the tweet author above it, then...
       tweetID = replied_to_tweet_ID       //take the ID of the tweet above it and make that the tweetID
@@ -141,7 +164,7 @@ async function findTweetbyID(tweetID) {                                  // defi
          tweet_thread_status = "Tweet";
          //console.log("There is", String(length), "tweet.")
          findUserbyID(tweet_author_id).then(() => {
-            addTweet({tweet: String(originalTweet[0]), tag1: "Tag1", tag2: "Tag2", source: String(coreStats[3]), url: String(originalTweet[4]), type: tweet_thread_status, length: length, tweet_date: String(originalTweet[1]), author_pfp: String(coreStats[0]), top_line: top_line, tweet_link: tweet_link, images_in_tweet: images_in_tweet}); //add the item, here an individual tweet, to Notion DB
+            addTweet({tweet: String(originalTweet[0]), tag1: "Tag1", tag2: "Tag2", source: String(coreStats[3]), url: String(originalTweet[4]), type: tweet_thread_status, length: length, tweet_date: String(originalTweet[1]), author_pfp: String(coreStats[0]), top_line: top_line, tweet_link: tweet_link_twt, images_in_tweet: images_in_tweet, poll_options, poll_close_date: poll_close_date}); //add the item, here an individual tweet, to Notion DB
          })
          return;
       }
