@@ -5,7 +5,7 @@ import { addTweet } from "./index.js"; // bringing over the code from index.js, 
 import { addThread } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
 import e from "express";
 
-const TWEET_ID = "1597030551382171648";  // Tweet: 1596887480027869189; Thread: 1575762790325047298. This is the crucial tweet ID that determines everything else
+const TWEET_ID = "1598084305368256514";  // Tweet: 1596887480027869189; Thread: 1575762790325047298. This is the crucial tweet ID that determines everything else
 var finalArray = []; // this will be the final array of all the tweets etc that we use to populate a page in the Notion DB
 var coreStats = [];  // this will be the final array of the core data we add into that Notion DB page
 
@@ -99,9 +99,13 @@ async function findTweetbyID(tweetID) {                                  // defi
       tweet_text = tweet_text.substring(replied_to_username_length); //removes the first 19 characters from the reply, leaving us with "hello Replied To Account..."       We then search to see if there is another replied-to account as well. If not, we move on
    }     //it also removes when tweets start with an @, which is an edge case
 
-   if (tweet_response_current.data[0].referenced_tweets[0].type == 'quoted') {   // if there is a quoted tweeted (auto-placed t.co link at end, always)
-      tweet_text = tweet_text.substring(0, tweet_text.length-24)                 // ...then cut it out from the main text
+   try {
+      if (tweet_response_current.data[0].referenced_tweets[0].type == 'quoted') {   // if there is a quoted tweeted (auto-placed t.co link at end, always)
+         tweet_text = tweet_text.substring(0, tweet_text.length-24)                 // ...then cut it out from the main text
+      }
    }
+   catch {}
+
    if (tweet_response_current.includes.hasOwnProperty('media')) {                   // checks if there is media in the tweet
       if (tweet_response_current.includes.media.type == 'photo') {                  // checks is media is photo. If video, we ignore
          for (var i = 0; i < tweet_response_current.includes.media.length; i++) {   // adds every media link to a bank (to be embedded later if a tweet, but if a thread))
