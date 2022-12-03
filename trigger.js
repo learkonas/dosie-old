@@ -21,7 +21,7 @@ https://www.wix.com/velo/reference/wix-http-functions/post
 https://www.wix.com/velo/reference/wix-http-functions/wixhttpfunctionresponse
 */
 
-const crypto = require("crypto");
+import crypto from "crypto";
 
 function createCrcResponseToken(crcToken) {
   const hmac = crypto
@@ -50,7 +50,7 @@ function postHandler(req, res) {
   res.status(200).json(body);
 }
 
-module.exports = (req, res) => {
+export default (req, res) => {
   try {
     switch (req.method) {
       case "GET":
@@ -65,19 +65,3 @@ module.exports = (req, res) => {
     res.status(500).send();
   }
 };
-
-
-/**
- * Creates a HMAC SHA-256 hash created from the app TOKEN and
- * your app Consumer Secret.
- * @param  token  the token provided by the incoming GET request
- * @return string
- 
-
-import * as crypto from 'crypto';
-
-const hmac = crypto.createHmac('sha256', process.env.TW_API_SECRET);
-hmac.update(crc_token);
-const hash = hmac.digest('hex');
-
-*/
