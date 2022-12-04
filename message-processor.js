@@ -4,7 +4,6 @@ var messages = require('./messages')
 
 var mp = {}
 
-
 /**
  * Processes incoming events
  * @param  payload  the incoming webhook json payload
