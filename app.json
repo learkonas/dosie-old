@@ -1,0 +1,8 @@
+{
+  "name": "Dosie",
+  "description": "Adding Tweets to a DB in the Notion API.",
+  "repository": "",
+  "logo": "",
+  "keywords": ["twitter", "express", "node"],
+  "image": ""
+}
