@@ -60,7 +60,6 @@ function process_message_event (message_event) {
     metadata = 'default_message' 
   }
 
-
   // access sender of the message to reply to
   var sender_id = message_event.message_create.sender_id
 
