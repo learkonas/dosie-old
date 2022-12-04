@@ -168,6 +168,7 @@ export async function addTweet({tweet, tag1, tag2, source, url, type, length, tw
                }
             ]
          }) // the ID of this appended block is at responseClosing["results"][0]["id"]
+         console.log("image: "+i)
       }
 
       const responseClosing = await notion.blocks.children.append({ 

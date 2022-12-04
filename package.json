@@ -2,7 +2,7 @@
     "name": "dosie",
     "type": "module",
     "version": "1.0.0",
-    "description": "Adding to a DB in the Notion API",
+    "description": "Adding Tweets to a DB in the Notion API",
     "main": "index.js",
     "dependencies": {
         "@notionhq/client": "^1.0.1",
@@ -17,5 +17,9 @@
         "oauth-1.0a": "^2.2.6",
         "oauth-2.0": "^0.0.1",
         "twitter-api-sdk": "^1.2.1"
+      },
+      "scripts": {
+        "start": "node app.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
       }
 }

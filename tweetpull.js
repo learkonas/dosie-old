@@ -5,7 +5,7 @@ import { addTweet } from "./index.js"; // bringing over the code from index.js, 
 import { addThread } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
 import e from "express";
 
-const TWEET_ID = "1598084305368256514";  // Tweet: 1596887480027869189; Thread: 1575762790325047298. This is the crucial tweet ID that determines everything else
+const TWEET_ID = "1599049385802928129";  // Tweet: 1596887480027869189; Thread: 1575762790325047298. This is the crucial tweet ID that determines everything else
 var finalArray = []; // this will be the final array of all the tweets etc that we use to populate a page in the Notion DB
 var coreStats = [];  // this will be the final array of the core data we add into that Notion DB page
 
@@ -106,7 +106,7 @@ async function findTweetbyID(tweetID) {                                  // defi
    }
    catch {}
 
-   if (tweet_response_current.includes.hasOwnProperty('media')) {                   // checks if there is media in the tweet
+   if (tweet_response_current.includes.hasOwnProperty('media')) {              // checks if there is media in the tweet
       if (tweet_response_current.includes.media.type == 'photo') {                  // checks is media is photo. If video, we ignore
          for (var i = 0; i < tweet_response_current.includes.media.length; i++) {   // adds every media link to a bank (to be embedded later if a tweet, but if a thread))
             images_in_tweet.push(tweet_response_current.includes.media[i].url)
