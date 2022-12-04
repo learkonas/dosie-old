@@ -9,7 +9,7 @@ I am building the following triggers:
 1. (a) Tweet sent in a DM -> save in Notion
 1b. Tweet sent in a DM followed by a message -> save in Notion, each word in following message used as a tag
 1c. Tweet sent in a DM followed by message A and message B -> save in Notion; each word in message A is a tag; message B is saved as a comment
-2. Tweet bookmarked -> save in Notion
+*  Tweet bookmarked -> save in Notion
 3a. @DosieCo tagged under the tweet -> save in Notion
 3b. @DosieCo tagged under the tweet with hashtags -> save in Notion with each hashtag used as a tag
 3c. @DosieCo tagged under the tweet with hashtags and other text -> save in Notion with each hashtag used as a tag and the other text saved as a comment
