@@ -1,11 +1,9 @@
-import { Client } from "twitter-api-sdk";
-import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
-dotenv.config();
-import { addTweet } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
-import { addThread } from "./index.js"; // bringing over the code from index.js, which is what adds pages to the Notion DB
-import e from "express";
+const { Client } = require('twitter-api-sdk')
+require('dotenv').config() // see https://github.com/motdotla/dotenv
 
-const TWEET_ID = "1599049385802928129";  // Tweet: 1596887480027869189; Thread: 1575762790325047298. This is the crucial tweet ID that determines everything else
+var tweetpush = require('./tweetpush')
+
+const TWEET_ID = "1598678416777093121";  // Tweet: 1596887480027869189; Thread: 1575762790325047298. This is the crucial tweet ID that determines everything else
 var finalArray = []; // this will be the final array of all the tweets etc that we use to populate a page in the Notion DB
 var coreStats = [];  // this will be the final array of the core data we add into that Notion DB page
 
@@ -168,7 +166,7 @@ async function findTweetbyID(tweetID) {                                  // defi
          tweet_thread_status = "Tweet";
          //console.log("There is", String(length), "tweet.")
          findUserbyID(tweet_author_id).then(() => {
-            addTweet({tweet: String(originalTweet[0]), tag1: "Tag1", tag2: "Tag2", source: String(coreStats[3]), url: String(originalTweet[4]), type: tweet_thread_status, length: length, tweet_date: String(originalTweet[1]), author_pfp: String(coreStats[0]), top_line: top_line, tweet_link: tweet_link_twt, images_in_tweet: images_in_tweet, poll_options, poll_close_date: poll_close_date}); //add the item, here an individual tweet, to Notion DB
+            tweetpush.addTweet({tweet: String(originalTweet[0]), tag1: "Tag1", tag2: "Tag2", source: String(coreStats[3]), url: String(originalTweet[4]), type: tweet_thread_status, length: length, tweet_date: String(originalTweet[1]), author_pfp: String(coreStats[0]), top_line: top_line, tweet_link: tweet_link_twt, images_in_tweet: images_in_tweet, poll_options, poll_close_date: poll_close_date}); //add the item, here an individual tweet, to Notion DB
          })
          return;
       }
@@ -176,7 +174,7 @@ async function findTweetbyID(tweetID) {                                  // defi
          tweet_thread_status = "Thread";
          //console.log("There are", String(length), "tweets.")  
          findUserbyID(tweet_author_id).then(() => {  
-            addThread(finalArray, coreStats); //add the item, here a multi-tweet thread, to Notion DB   
+            tweetpush.addThread(finalArray, coreStats); //add the item, here a multi-tweet thread, to Notion DB   
          })
          return;
       }
