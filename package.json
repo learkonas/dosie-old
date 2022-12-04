@@ -3,9 +3,7 @@
   "type": "commonjs",
   "version": "1.0.0",
   "description": "Adding Tweets to a DB in the Notion API",
-  "engines": {
-      "node": "5.9.1"
-  },
+
   "main": "index.js",
   "dependencies": {
       "@notionhq/client": "^1.0.1",
