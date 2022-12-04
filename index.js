@@ -14,21 +14,14 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.set('views', __dirname + '/views')
 app.set('view engine', 'ejs')
 
-
 console.log(twitter)
 
-
-/**
- * Serves the home page
- **/
+// Serves the home page
 app.get('/', function(request, response) {
   response.render('pages/index')
 })
 
-
-/**
- * Receives challenge response check (CRC)
- **/
+// Receives challenge response check (CRC)
 app.get('/webhooks/twitter', function(request, response) {
 
   var crc_token = request.query.crc_token
@@ -46,21 +39,14 @@ app.get('/webhooks/twitter', function(request, response) {
   }
 })
 
-
-/**
- * Receives DM events
- **/
+// Receives DM events
 app.post('/webhooks/twitter', function(request, response) {
 
-  // replace this with your own bot logic
-  message_processor.process(request.body)
+  message_processor.process(request.body) // replace this with your own bot logic
 
   response.send('200 OK')
 })
 
-
 app.listen(app.get('port'), function() {
   console.log('Node app is running on port', app.get('port'))
 })
-
-

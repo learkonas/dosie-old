@@ -1,6 +1,6 @@
 .env
 node_modules
-test.js
+t.js
 notes.txt
 config.json
 /*
