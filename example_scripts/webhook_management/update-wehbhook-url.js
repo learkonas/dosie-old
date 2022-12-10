@@ -23,7 +23,7 @@ var twitter_oauth = {
   token_secret: nconf.get('TWITTER_ACCESS_TOKEN_SECRET')
 }
 
-var WEBHOOK_URL = 'https://your-webhook-url'
+var WEBHOOK_URL = 'https://eox20rp6uzpjk00.m.pipedream.net'
 
 
 /**
