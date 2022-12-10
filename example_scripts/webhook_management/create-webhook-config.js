@@ -13,12 +13,12 @@ var twitter_oauth = {
   token_secret: nconf.get('TWITTER_ACCESS_TOKEN_SECRET')
 }
 
-var WEBHOOK_URL = 'dosie.onrender.com/webhooks/twitter'
+var WEBHOOK_URL = 'https://your-webhook-url'
 
 
 // request options
 var request_options = {
-  url: 'https://eolt4a2y2twsw7o.m.pipedream.net/webhooks/twitter',
+  url: 'https://api.twitter.com/1.1/account_activity/webhooks.json',
   oauth: twitter_oauth,
   headers: {
     'Content-type': 'application/x-www-form-urlencoded'
