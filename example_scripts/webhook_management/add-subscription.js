@@ -13,8 +13,7 @@ var twitter_oauth = {
   token_secret: nconf.get('TWITTER_ACCESS_TOKEN_SECRET')
 }
 
-var WEBHOOK_ID = 'u_KDh4eKb'
-
+var WEBHOOK_ID = 'your-webhook-id'
 
 // request options
 var request_options = {
