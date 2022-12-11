@@ -13,11 +13,9 @@ var twitter_oauth = {
   token_secret: nconf.get('TWITTER_ACCESS_TOKEN_SECRET')
 }
 
-var WEBHOOK_URL = 'https://your-webhook-url'
+var WEBHOOK_URL = 'https://europe-west2-tonal-limiter-370522.cloudfunctions.net/function-1'
 
-
-// request options
-var request_options = {
+var request_options = { // request options
   url: 'https://api.twitter.com/1.1/account_activity/webhooks.json',
   oauth: twitter_oauth,
   headers: {
